@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buyer nurture flows — weekly performance</title>
+<style>
+  :root{
+    --ink:#171717; --ink-2:#404040; --mute:#737373; --faint:#a3a3a3;
+    --line:#e5e5e5; --line-2:#d4d4d4; --panel:#f5f5f5; --white:#fff;
+    --up:#16a34a; --down:#dc2626; --warn:#b45309; --brand:#2563eb;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--white);color:var(--ink);font-family:var(--sans);
+       font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto}
+
+  /* ---- header ---- */
+  .masthead{background:#171717;color:#fff;padding:26px 34px;display:flex;
+            justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+           text-transform:uppercase;color:#8a8a8a}
+  .masthead h1{margin:8px 0 0;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .masthead h1 span{color:#8a8a8a;font-weight:400}
+  .meta{font-family:var(--mono);font-size:10.5px;line-height:1.85;color:#8a8a8a;text-align:right}
+  .meta b{color:#e5e5e5;font-weight:400}
+
+  /* ---- tabs ---- */
+  .tabs{display:flex;border-bottom:1px solid var(--line);background:#fff;padding:0 34px}
+  .tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;
+       padding:14px 4px;margin-right:30px;font:inherit;font-size:13.5px;color:var(--mute);
+       cursor:pointer}
+  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+  .tab:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+  .pane{padding:0 34px 56px}
+  .pane[hidden]{display:none}
+
+  /* ---- generic section furniture ---- */
+  .band{background:var(--panel);margin:0 -34px;padding:26px 34px}
+  .sect{display:flex;align-items:baseline;gap:12px;margin:34px 0 14px}
+  .sect h2{margin:0;font-size:19px;font-weight:600;letter-spacing:-.01em}
+  .sect .when{font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+               text-transform:uppercase;color:var(--faint)}
+  .note{background:#fafafa;border:1px solid var(--line);border-left:2px solid var(--ink);
+        padding:13px 16px;font-size:13px;color:var(--ink-2);margin:16px 0}
+  .note b{font-weight:600;color:var(--ink)}
+
+  /* ---- kpi cards ---- */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .kpi{background:#fff;border:1px solid var(--line);padding:13px 14px 12px}
+  .kpi .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+          text-transform:uppercase;color:var(--mute)}
+  .kpi .v{font-family:var(--mono);font-size:23px;font-weight:500;letter-spacing:-.02em;
+          margin:7px 0 5px;font-variant-numeric:tabular-nums}
+  .kpi .d{font-family:var(--mono);font-size:10.5px;color:var(--mute)}
+  .kpi .d.up{color:var(--up)} .kpi .d.down{color:var(--down)} .kpi .d.flat{color:var(--faint)}
+  .kpi .lw{border-top:1px dotted var(--line);margin-top:9px;padding-top:8px;
+           display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .kpi .lw .lwk{font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+                text-transform:uppercase;color:var(--faint)}
+  .kpi .lw .lwv{font-family:var(--mono);font-size:13px;font-weight:500;
+                font-variant-numeric:tabular-nums}
+  .kpi .d.neutral{color:var(--faint)}
+  .barlab{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+          color:var(--ink);border-bottom:1px solid var(--line-2);padding-bottom:6px;margin:0 0 10px;
+          display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .barlab span{color:var(--faint);letter-spacing:.08em}
+  .bar2{margin-top:26px}
+  .yoy td.dn{color:var(--down)} .yoy td.upp{color:var(--up)}
+  .yoy td:first-child{font-family:var(--mono);font-size:11px;word-break:break-all}
+  .flagrow{background:#fffbeb}
+  .keyfind{background:#171717;color:#fff;padding:20px 22px;margin:18px 0}
+  .keyfind .kf{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+               text-transform:uppercase;color:#8a8a8a;margin-bottom:8px}
+  .keyfind p{margin:0 0 8px;font-size:14.5px;line-height:1.55;color:#e5e5e5}
+  .keyfind p:last-child{margin-bottom:0}
+  .keyfind b{color:#fff;font-weight:600}
+  .acts{border-top:1px solid var(--line-2)}
+  .act{display:grid;grid-template-columns:30px 1fr;gap:14px;padding:13px 0;
+       border-bottom:1px solid var(--line)}
+  .actn{font-family:var(--mono);font-size:16px;color:var(--faint);line-height:1.3}
+  .acth{font-size:14px;font-weight:600;margin-bottom:3px;display:flex;gap:10px;
+        align-items:baseline;flex-wrap:wrap}
+  .acth span{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;
+             text-transform:uppercase;color:var(--mute);font-weight:400}
+  .act p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.55}
+  .sig{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.07em;
+       text-transform:uppercase;padding:2px 6px;border:1px solid}
+  .sig.yes{color:#166534;border-color:#bbf7d0;background:#f0fdf4}
+  .sig.no{color:var(--mute);border-color:var(--line);background:#fafafa}
+  .vsrest{font-family:var(--mono);font-size:9px;color:var(--faint);margin-left:6px;
+          letter-spacing:.06em;text-transform:uppercase}
+  .na{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.04em}
+  .prov td{font-size:11.5px;vertical-align:top;line-height:1.5}
+  .prov td:first-child{font-family:var(--sans);font-weight:500;font-size:12.5px}
+  .gaps{border-top:1px solid var(--line-2)}
+  .gap{padding:13px 0;border-bottom:1px solid var(--line)}
+  .gaphead{font-size:13.5px;font-weight:600;margin-bottom:4px;display:flex;
+           justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+  .gaphead span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+                text-transform:uppercase;color:var(--warn);font-weight:400;
+                border:1px solid #fde68a;background:#fffbeb;padding:2px 6px}
+  .gap p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.55}
+  .scope{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+         color:var(--mute);border-bottom:1px solid var(--line-2);padding-bottom:6px;
+         margin:0 0 10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .scope b{color:var(--ink);font-weight:500}
+
+  /* ---- benchmark table ---- */
+  table{width:100%;border-collapse:collapse}
+  .bm th,.bm td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);
+                font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+  .bm th{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);
+         border-bottom:1px solid var(--line-2)}
+  .bm th:first-child,.bm td:first-child{text-align:left;font-family:var(--sans);font-size:13px}
+  .verdict{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+  .verdict.ahead{color:var(--up)} .verdict.behind{color:var(--down)}
+  .verdict.level{color:var(--faint)}
+
+  /* ---- trend chart ---- */
+  .chart{background:#fff;border:1px solid var(--line);padding:18px 18px 10px}
+  .chart h3{margin:0 0 2px;font-size:13.5px;font-weight:600}
+  .chart .sub{font-family:var(--mono);font-size:10px;color:var(--faint);
+              letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+  .legend{display:flex;gap:16px;margin-top:8px;font-family:var(--mono);font-size:10px;
+          color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+  .legend i{display:inline-block;width:9px;height:9px;margin-right:5px;vertical-align:-1px}
+
+  /* ---- the flow ladder (signature) ---- */
+  .ladder{border-top:1px solid var(--line-2)}
+  .rung{display:grid;grid-template-columns:44px 118px 1fr 300px;gap:18px;
+        padding:18px 0;border-bottom:1px solid var(--line);align-items:start}
+  .step{font-family:var(--mono);font-size:11px;color:var(--faint);padding-top:2px;
+        letter-spacing:.04em}
+  .step b{display:block;font-size:22px;color:var(--ink);font-weight:500;line-height:1}
+  .shot{border:1px solid var(--line);background:var(--panel);aspect-ratio:5/4;
+        overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .shot img{width:100%;height:100%;object-fit:cover;object-position:top}
+  .shot .pend{font-family:var(--mono);font-size:9px;color:var(--faint);text-align:center;
+              padding:10px;letter-spacing:.08em;text-transform:uppercase;line-height:1.7}
+  .subj{font-size:14.5px;font-weight:500;margin:0 0 4px;letter-spacing:-.01em}
+  .subj.none{color:var(--faint);font-weight:400;font-style:italic}
+  .slug{font-family:var(--mono);font-size:10.5px;color:var(--mute);word-break:break-all}
+  .links{margin-top:9px;display:flex;gap:14px;flex-wrap:wrap}
+  .links a{font-family:var(--mono);font-size:10.5px;color:var(--brand);text-decoration:none;
+           border-bottom:1px solid #c7d8fb;padding-bottom:1px}
+  .links a:hover{border-bottom-color:var(--brand)}
+  .chip{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+        text-transform:uppercase;padding:3px 7px;margin-top:10px;border:1px solid}
+  .chip.win{color:#166534;border-color:#bbf7d0;background:#f0fdf4}
+  .chip.watch{color:#92400e;border-color:#fde68a;background:#fffbeb}
+  .chip.stall{color:#991b1b;border-color:#fecaca;background:#fef2f2}
+  .chip.ok{color:var(--mute);border-color:var(--line);background:#fafafa}
+
+  .mrow{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
+  .m{display:flex;justify-content:space-between;align-items:baseline;
+     border-bottom:1px dotted var(--line);padding:3px 0}
+  .m span{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+          text-transform:uppercase;color:var(--mute)}
+  .m b{font-family:var(--mono);font-size:13px;font-weight:500;font-variant-numeric:tabular-nums}
+  .m b.hi{color:var(--up)} .m b.lo{color:var(--down)}
+
+  /* ---- wins ---- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .col{background:#fff;border:1px solid var(--line);padding:16px 18px}
+  .col h3{margin:0 0 12px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+          text-transform:uppercase;color:var(--mute)}
+  .col.w{border-top:2px solid var(--up)} .col.a{border-top:2px solid var(--down)}
+  .col ul{margin:0;padding:0;list-style:none}
+  .col li{padding:9px 0;border-bottom:1px dotted var(--line);font-size:13.5px;color:var(--ink-2)}
+  .col li:last-child{border-bottom:0}
+  .col li b{color:var(--ink);font-weight:600}
+  .col li em{font-family:var(--mono);font-style:normal;font-size:12px;color:var(--ink)}
+
+  footer{border-top:1px solid var(--line);margin:0 -34px;padding:22px 34px 0;
+         font-size:12.5px;color:var(--mute)}
+  footer h4{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+            color:var(--ink);margin:0 0 8px}
+  footer li{margin-bottom:6px}
+
+  @media (max-width:840px){
+    .rung{grid-template-columns:34px 1fr;gap:12px}
+    .shot{grid-column:2;max-width:170px}
+    .cols{grid-template-columns:1fr}
+    .masthead{padding:22px}.tabs{padding:0 22px}.pane{padding:0 22px 44px}
+    .band,footer{margin:0 -22px;padding-left:22px;padding-right:22px}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .pane:not([hidden]){animation:fade .22s ease}
+    @keyframes fade{from{opacity:0}to{opacity:1}}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Buyer CRM &middot; always-on</div>
+      <h1>Nurture flows<br><span>weekly performance</span></h1>
+    </div>
+    <div class="meta">
+      Wedding &middot; journey <b>950956</b><br>
+      Moving Home &middot; journey <b>951750</b><br>
+      Email + Push &middot; Tableau<br>
+      Label <b>campaign_group: buyer_nurture</b><br>
+      Week ending <b>Tue 1 Sep 2026</b><br>
+      Generated <b>Wed 2 Sep 2026</b>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t-wed" aria-controls="p-wed" aria-selected="true">Wedding</button>
+    <button class="tab" role="tab" id="t-mov" aria-controls="p-mov" aria-selected="false">Moving Home</button>
+  </div>
+
+  <div class="pane" id="p-wed" role="tabpanel" aria-labelledby="t-wed"></div>
+  <div class="pane" id="p-mov" role="tabpanel" aria-labelledby="t-mov" hidden></div>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA — refresh this block each Monday.
+   Engagement + conversion: Tableau "Email - Country-Date-Domain-Campaign"
+   filtered to Email Campaign Group = buyer_nurture.
+   Benchmarks: same datasource, filtered to the comparable Email Campaign
+   SubGroup for each flow (not the whole marketing channel).
+   Creative + subject lines: Iterable templates.
+   ============================================================ */
+
+/* Category benchmarks, Aug 2026 month to date (to 16 Aug).
+   Wedding is benchmarked against the weddings subgroup; Moving Home against
+   the cleaning, house_cleaning, odd_jobs and home_and_garden subgroups,
+   which are the categories its comms actually promote. */
+const BENCH = {
+  wed:{ label:'Weddings category &middot; all buyer email &middot; Aug 2026 MTD',
+        basis:'160,605 sends across 9 campaigns, full month of Aug', benchSends:160605,
+        open:6322/160605, ctr:313/160605, unsub:227/160605, bounce:360/160605, proj1k:93/160.605 },
+  mov:{ label:'Cleaning, home &amp; odd jobs categories &middot; Aug 2026 MTD',
+        basis:'34715455 sends across 74 campaigns, full month of Aug', benchSends:34715455,
+        open:1147918/34715455, ctr:36400/34715455, unsub:22807/34715455,
+        bounce:96063/34715455, proj1k:5732/34715.455 }
+};
+
+/* Monthly filtered open rate %, Jan 2025 to Aug 2026, for the comparison
+   categories. Used to separate seasonality from a real change in performance. */
+const SEASON = {
+  months:['Jan 25','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',
+          'Jan 26','Feb','Mar','Apr','May','Jun','Jul','Aug'],
+  wed:[6.78,6.70,6.80,6.80,6.82,6.79,6.77,6.44,6.93,6.95,6.88,6.76,
+       7.39,7.06,4.86,4.66,4.73,4.64,4.58,4.32],
+  mov:[9.70,13.32,10.58,11.22,10.26,9.09,9.94,10.03,9.92,10.04,10.38,9.64,
+       10.01,10.02,7.85,7.17,4.57,4.08,4.22,3.68]
+};
+
+/* Like-for-like YoY on the legacy wedding campaigns, 21 Jul to 17 Aug both years.
+   [name, sends25, opens25, clicks25, unsub25, proj25, sends26, opens26, clicks26, unsub26, proj26] */
+const YOY_WED = [
+  ['buyer_targeted_wedding_ushv_241120_0',            48357,3472, 86,26,49, 35915,1823,58,19,17],
+  ['buyer_targeted_wedding_hvbuyers_240815_0',        38941,3752, 56,32,24, 28938,2001,54,21,10],
+  ['buyer_bob_targeted_weddings_241204_0',            22590,1933, 43,56,20, 32851,2102,49,94,13],
+  ['buyer_events_based_weddings_250320_0',             5543, 789,150,33,57,  4735, 531,82,22,26],
+  ['buyer_usbob_targeted_weddings_240918_MO',         14364, 128,  4, 3, 1, 20618, 150, 7, 9, 1],
+  ['buyer_usbob_targeted_weddings_USpricing_250211_1',13103, 132, 10, 4, 8, 18943, 157,17, 3, 7],
+  ['buyer_bob_targeted_weddings_UK_pricing_250129',   10143, 133, 11, 3, 3, 13295, 220,14, 4, 8],
+  ['buyer_usbob_targeted_weddings_CApricing_250211_1', 1231,  19,  0, 0, 0,  1919,  27, 1, 0, 1]
+];
+
+/* Bark (project) volume in the categories each journey targets.
+   Category sets derived from the journey entry lists and the in-email CTAs:
+     Wedding      - Iterable list 9875473 buyer_nurture_weddings_2605
+     Moving Home  - Iterable list 9936403 moving_home_nurture_entry_2605
+   Iterable's API exposes only list metadata, not dynamic segment criteria, so
+   the sets below come from the Handlebars entry conditions and the category
+   links inside each template, then validated against Tableau category names. */
+const DEMAND = {
+  wed:{
+    listId:9875473, listName:'buyer_nurture_weddings_2605', markets:'UK + US',
+    cats:['Wedding Photography','Wedding Car Hire','Wedding Venues','Wedding Makeup',
+          'Wedding DJ','Wedding Celebrants','Wedding Planning','Wedding Flowers',
+          'Wedding Catering','Wedding Videography','Wedding Cakes','Wedding Music Bands'],
+    excluded:'Generic Catering, DJ and Limousine Hire are left out: they are 280k barks a year but mostly non-wedding demand, and including them would drown the signal.',
+    y25:[21432,13884,14204,12419,12904,13595,13430,14590,13286,11575,9491,6113],
+    y26:[24749,15719,15551,11409,11689,12326,12961,6310]
+  },
+  mov:{
+    listId:9936403, listName:'moving_home_nurture_entry_2605', markets:'UK',
+    cats:['Removal Companies','Man & Van Services','End of Tenancy Cleaning',
+          'Carpet Cleaning','House Clearance','Deep Cleaning Services','Waste Management'],
+    excluded:'There is no Packing Services or Rubbish Removal category in Tableau; Waste Management is the rubbish equivalent. Broad House Cleaning is excluded as it is 189k barks and not move-specific.',
+    y25:[14305,13178,14173,12587,15251,15132,16361,16587,16817,16363,15687,14449],
+    y26:[19129,17362,18283,15724,16359,16609,16670,8140]
+  }
+};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const AUG_FRAC=16/31; /* Aug 2026 data runs to the 16th only */
+
+/* Push, SMS and WhatsApp for both journeys.
+   Tableau: CRM - Push-SMS-Whatsapp Reporting (6a536c4f), Campaign Group = buyer_nurture,
+   Attribution Mode = any_7d_post_send, 27 May to 1 Sep 2026.
+   The Attribution Mode filter is essential: rows repeat per mode and omitting it
+   triples every send count.
+   projPer1k uses buyer_project_count_any_7d_post_send, a LOOSER attribution than the
+   email datasource uses. The two must not be summed or compared. See gaps below. */
+const PUSH = {
+  wed:{ sends:1036, opens:19, clicks:0, bounces:0, projPer1k:82.046, valuePer1k:500.01,
+        emailSends:30136,
+        camps:[
+          ['buyer_nurture_wedding_push2_2605_2',17784612,509,5,'UK 260, US 249'],
+          ['buyer_nurture_wedding_photographer_push_2605_2',17784402,300,7,'UK 171, US 129'],
+          ['buyer_nurture_wedding_dj_push_2605_2',17784401,194,6,'UK 87, US 107'],
+          ['buyer_nurture_wedding_catering_push_2605_2',17784404,33,1,'UK 9, US 24']
+        ],
+        other:[] },
+  mov:{ sends:1132, opens:17, clicks:0, bounces:0, projPer1k:47.703, valuePer1k:214.74,
+        emailSends:20181,
+        camps:[
+          ['buyer_nurture_movinghome_push2_2605_2',18102711,542,5,'UK'],
+          ['buyer_nurture_movinghome_removals_push_2605_2',18102705,483,10,'UK'],
+          ['buyer_nurture_movinghome_cleaning_push_2605_2',18102710,89,2,'UK'],
+          ['buyer_nurture_movinghome_removals_crosssell_push_2605_2',18106869,11,0,'UK'],
+          ['buyer_nurture_movinghome_cleaning_crosssell_push_2605_2',18106873,7,0,'UK']
+        ],
+        other:[
+          ['SMS','buyer_nurture_movinghome_sms3_2605_2',18121717,6,'1 click'],
+          ['SMS','buyer_nurture_movinghome_sms2_2605_2',18102714,3,'no engagement'],
+          ['SMS','buyer_nurture_movinghome_removals_sms_2605_2',18102709,2,'1 click'],
+          ['WhatsApp','buyer_nurture_movinghome_whatsapp2_2605_2',18102727,1,'1 open']
+        ] }
+};
+
+/* Journey arms, recovered via SUM([email_send_skip_count]) because skip-only
+   campaigns register zero sends. These are the sendskip and control tiles inside each
+   journey, which is what the test arm should be compared against.
+     skip1 = *_email_sendskip_2605_1  the larger holdout arm
+     skip0 = *_email_sendskip_2605_0  the second holdout arm
+     ctrl2 = *_control2_2605_2        the version-2 control tile
+     catControls = per-category control tiles, small, no weekly split pulled
+   The _1 arm stopped firing after w/c 13 Jul 2026 in both journeys. That is the
+   holdout dissolution, and it is why the split collapses in the second phase. */
+const ARMS = {
+  wed:{
+    weeks:['11 May','18 May','25 May','1 Jun','8 Jun','15 Jun','22 Jun','29 Jun',
+           '6 Jul','13 Jul','20 Jul','27 Jul','3 Aug','10 Aug','17 Aug','24 Aug'],
+    sends:[   0,   0, 534, 740,1417,1805,1930,2153,2167,2656,3464,4243,4485,4542,4584,3809],
+    skip1:[  88, 201, 157, 311, 599, 533, 536, 599, 896, 226,   0,   0,   0,   0,   0,   0],
+    skip0:[  20,  43,  35,  69, 133, 119, 119, 133, 201, 232, 237, 267, 235, 235, 244, 209],
+    ctrl2:[   0,   2,   4,   4,   4,   9,   7,   7,   7,   5,  13,  10,  20,  15,  17,  15],
+    catControls:88, live:[2,9], post:[10,15],
+    arms:[['buyer_nurture_wedding_email_sendskip_2605_1',18020291,'holdout arm 1','stopped after w/c 13 Jul'],
+          ['buyer_nurture_wedding_email_sendskip_2605_0',18068906,'holdout arm 0','still running'],
+          ['buyer_nurture_wedding_control2_2605_2',17867857,'v2 control tile','still running'],
+          ['buyer_nurture_wedding_photographer_control_2605_2',17784407,'category control','51 total'],
+          ['buyer_nurture_wedding_dj_control_2605_2',17784334,'category control','34 total'],
+          ['buyer_nurture_wedding_catering_control_2605_2',17784409,'category control','3 total']],
+    priorLift:'approximately +5% to +9% project lift per 1K buyers'
+  },
+  mov:{
+    weeks:['11 May','18 May','25 May','1 Jun','8 Jun','15 Jun','22 Jun','29 Jun',
+           '6 Jul','13 Jul','20 Jul','27 Jul','3 Aug','10 Aug','17 Aug','24 Aug'],
+    sends:[   0,   0, 160, 362, 751,1053,1295,1561,1530,1909,2251,2992,3184,3133,3029,2838],
+    skip1:[   0,  14, 129, 195, 368, 415, 426, 587, 693, 198,   0,   0,   0,   0,   0,   0],
+    skip0:[   0,   4,  28,  44,  81,  92,  95, 131, 154,  46,   0,   0,   0,   0,   0,   0],
+    ctrl2:[   0,   0,   1,   8,  10,   8,   9,  13,  12,  14,  27,  34,  35,  37,  38,  39],
+    catControls:161, live:[2,9], post:[10,15],
+    arms:[['buyer_nurture_movinghome_email_sendskip_2605_1',18102722,'holdout arm 1','stopped after w/c 13 Jul'],
+          ['buyer_nurture_movinghome_email_sendskip_2605_0',18102719,'holdout arm 0','stopped after w/c 13 Jul'],
+          ['buyer_nurture_movinghome_control2_2605_2',18102726,'v2 control tile','still running'],
+          ['buyer_nurture_movinghome_removals_control_2605_2',18102717,'category control','138 total'],
+          ['buyer_nurture_movinghome_cleaning_control_2605_2',18102721,'category control','19 total'],
+          ['buyer_nurture_movinghome_cleaning_crosssell_control_2605_2',18106874,'category control','3 total'],
+          ['buyer_nurture_movinghome_removals_crosssell_control_2605_2',18106990,'category control','1 total']],
+    priorLift:'approximately +21% to +41% project lift per 1K buyers'
+  }
+};
+
+const FLOWS = {
+  wed:{
+    name:'Wedding', journey:950956, markets:'United Kingdom + United States',
+    weeks:[
+      ['27 May',535,51,1,2,0,0,0],
+      ['3 Jun',884,62,0,2,2,0,0],
+      ['10 Jun',1511,103,3,5,5,1,9],
+      ['17 Jun',1845,152,1,5,3,0,0],
+      ['24 Jun',2005,137,4,2,3,0,0],
+      ['1 Jul',2177,189,4,4,3,0,0],
+      ['8 Jul',2185,168,3,4,1,0,0],
+      ['15 Jul',2854,232,6,10,4,2,0],
+      ['22 Jul',3709,284,8,8,8,0,0],
+      ['29 Jul',4257,305,8,5,7,0,0],
+      ['5 Aug',4521,348,13,8,9,1,0],
+      ['12 Aug',4538,336,9,14,13,0,0],
+      ['19 Aug',4604,318,11,12,9,0,0],
+      ['26 Aug',3561,303,9,14,1,1,4.23]
+    ],
+    split:[ ['United Kingdom',7133,702,24], ['United States',10173,593,19] ],
+    comms:[
+      {n:1,id:17784379,tpl:23149831,slug:'buyer_nurture_wedding_email1_2605_2',
+       subject:'You’re planning a wedding 🎉 Here’s what’s next',
+       hero:'https://library.iterable.com/2079/8947/dbb9053796954919be68561ba99d7b58-wedding_hero1_fallback_desktop.png',
+       s:4326,o:321,c:20,u:17,p:0},
+      {n:2,id:17784440,tpl:23150019,slug:'buyer_nurture_wedding_email2_2605_2',
+       subject:'Find everything for your special day on Bark',
+       hero:'https://library.iterable.com/2079/8947/2ae6aaa351bd456bad3b707bd9149165-edited-image-1778483613194.png',
+       s:4459,o:238,c:4,u:10,p:0},
+      {n:3,id:17784617,tpl:23150215,slug:'buyer_nurture_wedding_email3_2605_2',
+       subject:null,hero:null,s:4650,o:255,c:11,u:10,p:2},
+      {n:4,id:17784620,tpl:23150221,slug:'buyer_nurture_wedding_email4_2605_2',
+       subject:null,hero:null,s:1436,o:197,c:5,u:5,p:0},
+      {n:5,id:17784623,tpl:23150223,slug:'buyer_nurture_wedding_email5_2605_2',
+       subject:null,hero:null,s:1335,o:168,c:1,u:0,p:0},
+      {n:6,id:17883669,tpl:23276462,slug:'buyer_nurture_wedding_email6_2605_2',
+       subject:null,hero:null,s:1100,o:116,c:2,u:3,p:0}
+    ],
+    context:[
+      'Against the weddings category rather than the whole marketing channel, this flow is the strongest wedding email Bark sends. Its 7.61% open rate since launch is 1.8&times; the 4.32% category rate, and its 0.192% CTR is level with it.',
+      'The category itself lost roughly 2pp of open rate in March 2026 and has not recovered. Every legacy wedding campaign shows the same step down, so the softness in this flow\u2019s recent weeks is a platform-level effect, not a creative one.',
+      'August is a genuinely weak month for wedding email. Open rate fell 4.9% from July to August in 2025 and 5.7% across the same two months in 2026. The dip repeats, so it should be expected rather than investigated.',
+      'Demand has not gone anywhere. Barks in the 12 wedding categories are up 2.5% January to July against last year, and August is normally a slightly busier month than July for wedding demand (up 8.6% in 2025). So the email decline is happening while the market holds, which points at deliverability or measurement rather than buyers losing interest.'
+    ],
+    wins:[
+      ['Open rate is 1.94&times; the wedding category.','7.63% against 3.94%, p&lt;0.0001 on 39,186 sends. This is the strongest wedding email Bark sends.'],
+      ['Email 1 is significantly the best for clicks.','0.367% CTR against 0.187% for the rest of the flow, p=0.013. The only comm-level click difference that clears significance.'],
+      ['CTR matches the category exactly.','0.192% against 0.197%, p=0.876. Statistically indistinguishable, which is a fair result for a nurture flow against high-intent targeted sends.'],
+      ['Bounce rate beats the category.','0.176% against 0.251%, p=0.020.']
+    ],
+    attention:[
+      ['Unsubscribes run 1.73&times; the category.','0.242% against 0.141%, p&lt;0.0001. This is the one engagement problem in the flow that is statistically real.'],
+      ['Conversion is well below category.','0.10 projects per 1k against 0.579, p&lt;0.001. Wedding barks are up 2.5% year to date, so the gap sits between the email and the bark form, not in the market.'],
+      ['US opens trail UK by 3.7pp.','9.66% against 5.95%, p&lt;0.0001, on 46% more US volume. Matches the pattern the World Cup campaign showed.'],
+      ['Email 5 has taken no clicks, but it is not yet significant.','0 clicks on 1,055 sends over four weeks, p=0.114 against the rest of the flow. Suggestive, not proven. Two or three more weeks of volume before acting on it.'],
+      ['No week-on-week movement is significant.','Open, CTR, unsubscribe and bounce all fail the test at these volumes. Read the cumulative and category columns, not the weekly arrows.'],
+      ['Push reaches 3.4% of the email audience.','1,036 sends against 30,136 emails, with 19 taps in twelve weeks. The push leg is a rounding error, not a channel.'],
+      ['The holdout stopped firing after w/c 13 Jul.','The split ran at 27.0% of audience while the test was live and is now 5.8%. The _1 sendskip arm stopped and only the smaller _0 arm and the control tile remain.']
+    ],
+    actions:[
+      ['Fix the unsubscribe rate','Owner: Anantha','The only significant negative. Audit frequency and the opt-out placement on emails 4 and 6, which run at 0.358% and 0.466%. Target the 0.119% category rate.'],
+      ['Close the conversion gap','Owner: Anantha with Ankita','Engagement is excellent and conversion is not, so the loss is after the click. Audit the landing path from email 1, the one comm proven to drive clicks, into the bark form.'],
+      ['Leave email 5 alone for now','Owner: Anantha','Zero clicks is not yet significant. Let it accrue two or three more weeks rather than rewriting on noise, then re-test.'],
+      ['Decide on the US leg','Owner: Katie','US is 59% of volume at 5.95% open against 9.66% UK, significant. Either localise it or reweight spend to UK.'],
+      ['Restart the holdout arm','Owner: Anantha','The _1 sendskip tile stopped firing after w/c 13 Jul, taking the split from 27.0% to 5.8%. Find out whether that was intentional. Until it runs again no lift can be measured, including a refresh of the +5% to +9% figure this flow is credited with.'],
+      ['Raise the March 2026 measurement break','Owner: Anantha to Max Allos','Category open rate stepped down about 2pp in March across two unrelated categories while demand held. Needs a root cause before any pre-March comparison is quoted.']
+    ]
+  },
+  mov:{
+    name:'Moving Home', journey:951750, markets:'United Kingdom',
+    weeks:[
+      ['27 May',183,28,0,1,0,0,0],
+      ['3 Jun',442,54,3,1,0,1,18.68],
+      ['10 Jun',808,97,3,4,1,1,8.73],
+      ['17 Jun',1129,120,4,4,3,2,20.55],
+      ['24 Jun',1351,142,6,6,5,1,13.46],
+      ['1 Jul',1544,152,9,4,5,3,5.76],
+      ['8 Jul',1585,150,2,5,2,0,0],
+      ['15 Jul',1931,181,4,5,1,0,0],
+      ['22 Jul',2402,223,7,10,2,0,0],
+      ['29 Jul',3091,289,4,11,4,0,0],
+      ['5 Aug',3191,299,9,14,4,1,26.14],
+      ['12 Aug',3142,290,8,20,2,0,0],
+      ['19 Aug',2983,249,4,14,6,0,0],
+      ['26 Aug',2787,221,3,14,2,0,0]
+    ],
+    split:[ ['United Kingdom',12191,1084,24] ],
+    comms:[
+      {n:1,id:18102725,tpl:23557152,slug:'buyer_nurture_movinghome_email1_2605_2',
+       subject:'You’re on the move 📦 Here’s what most people forget',
+       hero:'https://library.iterable.com/2079/8947/27ce7cf87f34481695c9fe074c99dd5c-nurture_movinghome_email1hero_moving.png',
+       s:3705,o:374,c:9,u:35,p:1},
+      {n:2,id:18102723,tpl:23557149,slug:'buyer_nurture_movinghome_email2_2605_2',
+       subject:null,hero:null,s:3661,o:276,c:11,u:13,p:0},
+      {n:3,id:18102706,tpl:23557132,slug:'buyer_nurture_movinghome_email3_2605_2',
+       subject:null,hero:null,s:3684,o:235,c:3,u:11,p:0},
+      {n:4,id:18102718,tpl:23557144,slug:'buyer_nurture_movinghome_email4_2605_2',
+       subject:null,hero:null,s:1141,o:199,c:1,u:2,p:0}
+    ],
+    context:[
+      'Benchmarked against the categories this flow actually sells (cleaning, home and garden, odd jobs), it is performing exceptionally on engagement: 9.65% open rate against 3.68%, and 0.292% CTR against 0.106%. That is 2.6&times; and 2.8&times; the category.',
+      'The July to August dip is not seasonal. These categories were flat to slightly up across the same two months in 2025 (9.94% to 10.03%), so the 1.4pp drop in this flow last week is its own movement and worth watching rather than explaining away.',
+      'Category open rate fell from 10% in February 2026 to 3.7% now, alongside send volume rising from 17.7m in February to 41.4m in July. Some of that decline is mix rather than deliverability, which is another reason to judge this flow against the category rather than against its own history.',
+      'Demand is strongly up: barks in the 7 moving and cleaning categories rose 19.0% January to July against last year. August is also close to the seasonal peak for these categories. The flow is therefore softening at the exact point the opportunity is largest, which makes the unsubscribe problem more urgent, not less.'
+    ],
+    wins:[
+      ['Open rate is 2.84&times; the category.','9.39% against 3.31%, p&lt;0.0001. Best engagement of any buyer flow reviewed.'],
+      ['CTR is 2.36&times; the category.','0.248% against 0.105%, p&lt;0.0001.'],
+      ['Bounce rate is half the category.','0.144% against 0.292%, p&lt;0.0001.'],
+      ['Riding a growing category.','Barks in these 7 categories are up 19.0% January to July year on year, the strongest demand growth of the two journeys.'],
+      ['Conversion is ahead of category.','9 projects from 20,181 sends is 0.45 per 1k against 0.180. Small absolute numbers, pointing the right way.']
+    ],
+    attention:[
+      ['Email 1 is a significant unsubscribe outlier.','0.99% against 0.59% for the rest of the flow, p&lt;0.001. It generates 38 of the flow\u2019s 53 unsubscribes. This is the single clearest action in either journey.'],
+      ['Flow unsubscribe rate is 6.5&times; the category.','0.425% against 0.066%, p&lt;0.0001. The flow is buying its strong engagement with list damage.'],
+      ['SMS and WhatsApp are not firing.','11 SMS sends and 1 WhatsApp send in twelve weeks against 20,181 emails. Almost certainly a consent or phone-number condition, not performance.'],
+      ['Email 3 is the weakest for clicks but only marginally so.','0.097% CTR, p=0.056 against the rest of the flow. Just misses significance, so treat as a watch item.'],
+      ['The weekly open-rate drop is not significant.','Down 0.42pp week on week, p=0.562. It also runs against the category, which rose slightly across July to August last year, so keep watching it without acting yet.'],
+      ['Push reaches 5.6% of the email audience.','1,132 sends, 17 taps. Worth deciding whether it earns the maintenance cost.'],
+      ['The holdout collapsed completely after w/c 13 Jul.','Both sendskip arms stopped firing in the same week. The split went from 30.4% of audience to 1.1%, leaving only the control2 tile. This flow currently has no usable holdout.']
+    ],
+    actions:[
+      ['Rewrite or resequence email 1','Owner: Anantha','The only comm-level significant negative in either flow. 38 of 53 unsubscribes. Check the frequency gap between journey entry and this send, and whether it lands before the buyer expects contact.'],
+      ['Diagnose the SMS and WhatsApp steps','Owner: Anantha with Max Allos','12 sends in 12 weeks is a broken condition, not weak performance. Check consent flags and phone-number availability on the entry list.'],
+      ['Protect the peak','Owner: Katie','These categories run hottest July to September and demand is up 19%. The unsubscribe fix is worth more now than in January.'],
+      ['Add the packing category or remove the CTA','Owner: Anantha','Email 1 links to a packing services page with no matching Tableau category, so those clicks cannot convert to a bark.'],
+      ['Restart both holdout arms','Owner: Anantha','Both sendskip tiles stopped firing after w/c 13 Jul and the split fell from 30.4% to 1.1%. The +21% to +41% lift this flow is credited with covers the intact period only and cannot currently be refreshed. Highest priority after the email 1 unsubscribe fix.'],
+      ['Watch email 3 for two more weeks','Owner: Anantha','At p=0.056 it is close. If it holds, it is the next creative fix after email 1.']
+    ]
+  }
+
+};
+
+/* ---------- helpers ---------- */
+const pct=(x,d=2)=>(x*100).toFixed(d)+'%';
+const num=x=>x.toLocaleString('en-GB');
+const gbp=x=>'\u00a3'+x.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+const W=r=>({wc:r[0],s:r[1],o:r[2],c:r[3],u:r[4],b:r[5],p:r[6],r:r[7]||0});
+
+/* Direction of good varies by metric:
+   'up'      higher is better (open, ctr, ctor, projects, ppr)
+   'down'    lower is better  (unsub, bounce)
+   'neutral' no good or bad   (sends)                                        */
+function delta(cur,prev,{pp=false,dir='up',dp=2}={}){
+  if(prev==null) return {cls:'neutral',txt:'\u2014'};
+  if(prev===0 && cur===0) return {cls:'neutral',txt:'0 both weeks'};
+  if(prev===0) return {cls:dir==='neutral'?'neutral':(dir==='up'?'up':'down'),
+                       txt:'up from 0'};
+  const d = pp ? (cur-prev)*100 : (cur-prev)/prev*100;
+  if(Math.abs(d)<0.0005) return {cls:'neutral',txt:'no change'};
+  const arrow = d>0 ? '\u2191' : '\u2193';
+  const mag = `${arrow} ${Math.abs(d).toFixed(dp)}${pp?'pp':'%'}`;
+  if(dir==='neutral') return {cls:'neutral',txt:mag};
+  const better = dir==='up' ? d>0 : d<0;
+  return {cls:better?'up':'down', txt:mag};
+}
+
+const statCard=(k,v,foot='')=>`<div class="kpi"><div class="k">${k}</div>
+    <div class="v">${v}</div><div class="d neutral">${foot}</div></div>`;
+
+const wowCard=(k,v,d,sg)=>`<div class="kpi"><div class="k">${k}</div>
+    <div class="v">${v}</div><div class="d ${d.cls}">${d.txt}</div>
+    ${sg?`<div class="lw">${sigChip(sg)}</div>`:''}</div>`;
+
+
+/* ---------- significance: two-proportion z-test ---------- */
+function normcdf(x){
+  const t=1/(1+0.2316419*x), d=0.3989423*Math.exp(-x*x/2);
+  const poly=t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));
+  return 1-d*poly;
+}
+function ztest(x1,n1,x2,n2){
+  if(!n1||!n2) return {sig:false,txt:'no data',p:1};
+  const p1=x1/n1, p2=x2/n2, pp=(x1+x2)/(n1+n2);
+  const se=Math.sqrt(pp*(1-pp)*(1/n1+1/n2));
+  if(!se) return {sig:false,txt:'no variance',p:1};
+  const z=(p1-p2)/se, pv=2*(1-normcdf(Math.abs(z)));
+  return {z,p:pv,sig:pv<0.05,
+          txt: pv<0.001?'p&lt;0.001':'p='+pv.toFixed(3)};
+}
+const sigChip=r=>`<span class="sig ${r.sig?'yes':'no'}">${r.sig?'sig':'not sig'} &middot; ${r.txt}</span>`;
+
+/* ---------- trend chart ---------- */
+function chart(weeks){
+  const w=980,h=210,pl=44,pr=44,pt=14,pb=26;
+  const iw=w-pl-pr, ih=h-pt-pb, n=weeks.length, bw=iw/n;
+  const rows=weeks.map(W);
+  const maxS=Math.max(...rows.map(r=>r.s))*1.1;
+  const maxR=Math.max(...rows.flatMap(r=>[r.o/r.s, r.c/r.s*20]))*1.15;
+  const x=i=>pl+bw*i+bw/2, yS=v=>pt+ih-(v/maxS)*ih, yR=v=>pt+ih-(v/maxR)*ih;
+  const bars=rows.map((r,i)=>`<rect x="${pl+bw*i+bw*0.24}" y="${yS(r.s)}" width="${bw*0.52}"
+       height="${pt+ih-yS(r.s)}" fill="#e8ecf3"/>`).join('');
+  const line=(vals,col)=>`<polyline points="${vals.map((v,i)=>`${x(i)},${yR(v)}`).join(' ')}"
+       fill="none" stroke="${col}" stroke-width="1.8"/>`+
+    vals.map((v,i)=>`<circle cx="${x(i)}" cy="${yR(v)}" r="2.6" fill="#fff"
+       stroke="${col}" stroke-width="1.6"/>`).join('');
+  const labels=rows.map((r,i)=>`<text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="9.5"
+       font-family="monospace" fill="${i===n-1?'#171717':'#a3a3a3'}">${r.wc}</text>`).join('');
+  const grid=[0,.5,1].map(f=>`<line x1="${pl}" x2="${w-pr}" y1="${pt+ih*f}" y2="${pt+ih*f}"
+       stroke="#f0f0f0"/>`).join('');
+  return `<div class="chart">
+    <h3>Weekly send volume, open rate and CTR (Wed&ndash;Tue)</h3>
+    <div class="sub">Fourteen weeks since launch &middot; w/c 27 May to 1 Sep 2026</div>
+    <svg viewBox="0 0 ${w} ${h}" width="100%" role="img"
+         aria-label="Weekly sends, open rate and CTR since launch">
+      ${grid}${bars}${line(rows.map(r=>r.o/r.s),'#171717')}${line(rows.map(r=>r.c/r.s*20),'#2563eb')}${labels}
+    </svg>
+    <div class="legend">
+      <span><i style="background:#e8ecf3"></i>Sends</span>
+      <span><i style="background:#171717"></i>Open rate</span>
+      <span><i style="background:#2563eb"></i>CTR (&times;20 scale)</span>
+    </div></div>`;
+}
+
+/* ---------- seasonality chart: same months, both years ---------- */
+function seasonChart(key){
+  const months=SEASON.months, series=SEASON[key];
+  const w=980,h=200,pl=44,pr=20,pt=14,pb=28;
+  const iw=w-pl-pr, ih=h-pt-pb, n=months.length;
+  const max=Math.max(...series)*1.12;
+  const x=i=>pl+(iw/(n-1))*i, y=v=>pt+ih-(v/max)*ih;
+  const pts=series.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  const dots=series.map((v,i)=>{
+    const aug = months[i]==='Aug';
+    return `<circle cx="${x(i)}" cy="${y(v)}" r="${aug?3.8:2.4}"
+      fill="${aug?'#dc2626':'#fff'}" stroke="${aug?'#dc2626':'#171717'}" stroke-width="1.5"/>`;
+  }).join('');
+  const augLab=months.map((m,i)=> m==='Aug'
+    ? `<text x="${x(i)}" y="${y(series[i])-10}" text-anchor="middle" font-size="10"
+         font-family="monospace" fill="#dc2626">${series[i].toFixed(1)}%</text>` : '').join('');
+  const labels=months.map((m,i)=> (i%2===0||m==='Aug')
+    ? `<text x="${x(i)}" y="${h-9}" text-anchor="middle" font-size="9"
+         font-family="monospace" fill="#a3a3a3">${m}</text>` : '').join('');
+  /* March 2026 marker, index 14 */
+  const brk=`<line x1="${x(12)}" x2="${x(12)}" y1="${pt}" y2="${pt+ih}"
+      stroke="#d4d4d4" stroke-dasharray="3 3"/>
+    <text x="${x(12)+5}" y="${pt+11}" font-size="9" font-family="monospace"
+      fill="#737373">Mar 2026 step change</text>`;
+  return `<div class="chart">
+    <h3>Category open rate by month, both years</h3>
+    <div class="sub">Augusts marked in red &middot; Jan 2025 to Aug 2026</div>
+    <svg viewBox="0 0 ${w} ${h}" width="100%" role="img"
+         aria-label="Monthly category open rate across 2025 and 2026">
+      ${brk}<polyline points="${pts}" fill="none" stroke="#171717" stroke-width="1.8"/>
+      ${dots}${augLab}${labels}
+    </svg></div>`;
+}
+
+/* ---------- YoY table for the legacy wedding campaigns ---------- */
+function yoyTable(){
+  const rows=YOY_WED.map(r=>{
+    const [nm,s5,o5,c5,u5,p5,s6,o6,c6,u6,p6]=r;
+    const or5=o5/s5, or6=o6/s6, ct5=c5/s5, ct6=c6/s6;
+    const pk5=p5/(s5/1000), pk6=p6/(s6/1000);
+    const orD=(or6-or5)*100, pkD=pk5? (pk6-pk5)/pk5*100 : 0;
+    const broken = or5<0.02;
+    return `<tr class="${broken?'flagrow':''}">
+      <td>${nm}${broken?' &#9888;':''}</td>
+      <td>${pct(or5,2)}</td><td>${pct(or6,2)}</td>
+      <td class="${orD<0?'dn':'upp'}">${orD>0?'+':''}${orD.toFixed(2)}pp</td>
+      <td>${pct(ct5,3)}</td><td>${pct(ct6,3)}</td>
+      <td>${pk5.toFixed(2)}</td><td>${pk6.toFixed(2)}</td>
+      <td class="${pkD<0?'dn':'upp'}">${pkD>0?'+':''}${pkD.toFixed(0)}%</td></tr>`;
+  }).join('');
+  return `<table class="bm yoy"><thead><tr>
+      <th>Campaign</th><th>Open 25</th><th>Open 26</th><th>Change</th>
+      <th>CTR 25</th><th>CTR 26</th><th>Proj/1k 25</th><th>Proj/1k 26</th><th>Change</th>
+    </tr></thead><tbody>${rows}</tbody></table>
+    <div class="note">Same four-week window both years, 21 July to 17 August.
+      <b>Every campaign lost open rate, by 0.13pp to 3.02pp.</b> The four rows flagged
+      &#9888; sit under a 2% open rate in both years, which is far too low to be real
+      engagement and points at missing tracking on those sends rather than a bad audience.
+      They are 34% of wedding volume this August against 25% last, so they drag the
+      category average down independently of anything else.</div>`;
+}
+
+/* ---------- benchmark table: overall and last week against category ---------- */
+function bmTable(key,all,cur){
+  const b=BENCH[key];
+  const N=b.benchSends, rows=[
+    ['Open rate (filtered)', all.o/all.s, cur.o/cur.s, b.open, 1, 'up',  ztest(all.o,all.s,Math.round(b.open*N),N)],
+    ['Click-through rate',   all.c/all.s, cur.c/cur.s, b.ctr,  3, 'up',  ztest(all.c,all.s,Math.round(b.ctr*N),N)],
+    ['Unsubscribe rate',     all.u/all.s, cur.u/cur.s, b.unsub,3, 'down',ztest(all.u,all.s,Math.round(b.unsub*N),N)],
+    ['Bounce rate',          all.b/all.s, cur.b/cur.s, b.bounce,3,'down',ztest(all.b,all.s,Math.round(b.bounce*N),N)],
+    ['Projects per 1k sends',all.p/(all.s/1000)/100, cur.p/(cur.s/1000)/100, b.proj1k/100, 2,'up',
+      ztest(all.p,all.s,Math.round(b.proj1k/1000*N),N)]
+  ];
+  return `<table class="bm"><thead><tr>
+      <th>Metric</th><th>Since launch</th><th>Last week</th>
+      <th>Category</th><th>Index</th><th>Read</th><th>Significance</th>
+    </tr></thead><tbody>`+rows.map(([k,v,lw,bv,dp,dir,sg])=>{
+      const idx=bv?v/bv:0;
+      const good = dir==='up' ? v>bv : v<bv;
+      const cls = Math.abs(idx-1)<0.08 ? 'level' : (good?'ahead':'behind');
+      const read = Math.abs(idx-1)<0.08 ? 'In line' : (good?'Ahead':'Behind');
+      const f = k.startsWith('Projects')
+        ? (x=>(x*100).toFixed(dp)) : (x=>pct(x,dp));
+      return `<tr><td>${k}</td><td>${f(v)}</td><td>${f(lw)}</td><td>${f(bv)}</td>
+        <td>${idx.toFixed(2)}&times;</td><td class="verdict ${cls}">${read}</td>
+        <td>${sigChip(sg)}</td></tr>`;
+    }).join('')+`</tbody></table>
+    <div class="note"><b>Benchmark:</b> ${b.label} (${b.basis}). This replaces the
+    whole-channel average, which mixed transactional and high-intent sends and made
+    both flows look worse than they are.</div>`;
+}
+
+/* ---------- comm ladder ---------- */
+/* Flags compare each comm against the rest of its own flow and only fire when the
+   difference is significant, so a small comm cannot be labelled on noise alone. */
+function flag(c,key,rest){
+  const b=BENCH[key];
+  const uT=ztest(c.u,c.s,rest.u,rest.s), cT=ztest(c.c,c.s,rest.c,rest.s);
+  const ctr=c.c/c.s, unsub=c.u/c.s;
+  if(uT.sig && unsub>rest.u/rest.s) return ['stall','Unsub outlier',uT];
+  if(cT.sig && ctr<rest.c/rest.s)   return ['watch','Weak CTR',cT];
+  if(cT.sig && ctr>rest.c/rest.s)   return ['win','Best for clicks',cT];
+  if(c.c===0 && c.s>500)            return ['watch','No clicks yet',cT];
+  return ['ok','No sig difference',cT];
+}
+
+function ladder(comms,key){
+  const b=BENCH[key];
+  const tot=comms.reduce((a,x)=>({s:a.s+x.s,o:a.o+x.o,c:a.c+x.c,u:a.u+x.u}),{s:0,o:0,c:0,u:0});
+  return `<div class="ladder">`+comms.map(c=>{
+    const rest={s:tot.s-c.s,o:tot.o-c.o,c:tot.c-c.c,u:tot.u-c.u};
+    const open=c.o/c.s, ctr=c.c/c.s, ctor=c.o?c.c/c.o:0, unsub=c.u/c.s;
+    const [cls,txt,tst]=flag(c,key,rest);
+    const shot = c.hero
+      ? `<img src="${c.hero}" alt="Creative for ${c.slug}" loading="lazy">`
+      : `<div class="pend">Preview<br>in Iterable</div>`;
+    const cmp=(v,bv,inv=false)=> (inv ? v<bv : v>bv) ? 'hi' : 'lo';
+    return `<div class="rung">
+      <div class="step">Email<b>${c.n}</b></div>
+      <div class="shot">${shot}</div>
+      <div>
+        ${c.subject ? `<p class="subj">${c.subject}</p>`
+                    : `<p class="subj none">Subject line not yet pulled</p>`}
+        <div class="slug">${c.slug}</div>
+        <div class="links">
+          <a href="https://app.iterable.com/campaigns/${c.id}" target="_blank" rel="noopener">Campaign ${c.id}</a>
+          <a href="https://app.iterable.com/templates/editor?templateId=${c.tpl}&mode=email" target="_blank" rel="noopener">Open creative</a>
+        </div>
+        <span class="chip ${cls}">${txt}</span>
+        <div style="margin-top:7px">${sigChip(tst)}<span class="vsrest">vs rest of flow</span></div>
+      </div>
+      <div class="mrow">
+        <div class="m"><span>Sends</span><b>${num(c.s)}</b></div>
+        <div class="m"><span>Open rate</span><b class="${cmp(open,b.open)}">${pct(open,1)}</b></div>
+        <div class="m"><span>CTR</span><b class="${cmp(ctr,b.ctr)}">${pct(ctr,3)}</b></div>
+        <div class="m"><span>CTOR</span><b>${pct(ctor,1)}</b></div>
+        <div class="m"><span>Unsub</span><b class="${cmp(unsub,b.unsub,true)}">${pct(unsub,3)}</b></div>
+        <div class="m"><span>Projects</span><b>${c.p}</b></div>
+      </div></div>`;
+  }).join('')+`</div>`;
+}
+
+function splitTable(split){
+  if(split.length<2) return '';
+  const tot=split.reduce((a,r)=>a+r[1],0);
+  return `<div class="sect"><h2>Market split</h2><span class="when">Last 4 complete weeks</span></div>
+    <table class="bm"><thead><tr><th>Market</th><th>Sends</th><th>Open rate</th>
+      <th>CTR</th><th>Share of sends</th></tr></thead><tbody>`+
+    split.map(([m,s,o,c])=>`<tr><td>${m}</td><td>${num(s)}</td><td>${pct(o/s,1)}</td>
+      <td>${pct(c/s,3)}</td><td>${pct(s/tot,0)}</td></tr>`).join('')+`</tbody></table>`;
+}
+
+
+/* ---------- category demand: barks per month, this year against last ---------- */
+function demandChart(key){
+  const d=DEMAND[key], w=980,h=230,pl=52,pr=20,pt=16,pb=30;
+  const iw=w-pl-pr, ih=h-pt-pb, n=12;
+  const max=Math.max(...d.y25,...d.y26)*1.12;
+  const x=i=>pl+(iw/(n-1))*i, y=v=>pt+ih-(v/max)*ih;
+  const lastFull=d.y26.length-2;            /* Jul index */
+  const augIdx=d.y26.length-1;
+  const augProj=Math.round(d.y26[augIdx]/AUG_FRAC);
+
+  const p25=d.y25.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  const p26=d.y26.slice(0,lastFull+1).map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+
+  const dots=(arr,col,upTo)=>arr.slice(0,upTo+1).map((v,i)=>
+    `<circle cx="${x(i)}" cy="${y(v)}" r="2.4" fill="#fff" stroke="${col}" stroke-width="1.5"/>`).join('');
+
+  const grid=[0,.25,.5,.75,1].map(f=>`<line x1="${pl}" x2="${w-pr}" y1="${pt+ih*f}"
+      y2="${pt+ih*f}" stroke="#f2f2f2"/>`).join('');
+  const yax=[0,.5,1].map(f=>`<text x="${pl-8}" y="${pt+ih*(1-f)+3}" text-anchor="end"
+      font-size="9" font-family="monospace" fill="#a3a3a3">${Math.round(max*f/1000)}k</text>`).join('');
+  const labels=MON.map((m,i)=>`<text x="${x(i)}" y="${h-10}" text-anchor="middle" font-size="9"
+      font-family="monospace" fill="${i===augIdx?'#171717':'#a3a3a3'}">${m}</text>`).join('');
+
+  /* partial August: dashed run-out plus the pro-rata projection */
+  const partial=`
+    <line x1="${x(lastFull)}" y1="${y(d.y26[lastFull])}" x2="${x(augIdx)}" y2="${y(d.y26[augIdx])}"
+      stroke="#171717" stroke-width="1.6" stroke-dasharray="4 3"/>
+    <circle cx="${x(augIdx)}" cy="${y(d.y26[augIdx])}" r="3" fill="#fff"
+      stroke="#171717" stroke-width="1.5"/>
+    <circle cx="${x(augIdx)}" cy="${y(augProj)}" r="3.6" fill="#b45309"/>
+    <text x="${x(augIdx)-6}" y="${y(augProj)+4}" text-anchor="end" font-size="9.5"
+      font-family="monospace" fill="#b45309">${(augProj/1000).toFixed(1)}k run rate</text>`;
+
+  return `<div class="chart">
+    <h3>Barks placed in ${DEMAND[key].cats.length} ${key==='wed'?'wedding':'moving and cleaning'} categories</h3>
+    <div class="sub">${d.markets} &middot; monthly &middot; 2026 against 2025</div>
+    <svg viewBox="0 0 ${w} ${h}" width="100%" role="img"
+      aria-label="Monthly barks placed in the journey's categories, 2026 against 2025">
+      ${grid}${yax}
+      <polyline points="${p25}" fill="none" stroke="#c7c7c7" stroke-width="1.8"/>
+      ${dots(d.y25,'#c7c7c7',11)}
+      <polyline points="${p26}" fill="none" stroke="#171717" stroke-width="2"/>
+      ${dots(d.y26,'#171717',lastFull)}
+      ${partial}${labels}
+    </svg>
+    <div class="legend">
+      <span><i style="background:#c7c7c7"></i>2025</span>
+      <span><i style="background:#171717"></i>2026</span>
+      <span><i style="background:#b45309"></i>Aug 2026 pro-rata (data to 16th)</span>
+    </div></div>`;
+}
+
+function demandSummary(key){
+  const d=DEMAND[key];
+  const s25=d.y25.slice(0,7).reduce((a,b)=>a+b,0);
+  const s26=d.y26.slice(0,7).reduce((a,b)=>a+b,0);
+  const ytd=(s26-s25)/s25*100;
+  const jul=(d.y26[6]-d.y25[6])/d.y25[6]*100;
+  const augProj=Math.round(d.y26[7]/AUG_FRAC);
+  const aug=(augProj-d.y25[7])/d.y25[7]*100;
+  const sign=v=>(v>0?'+':'')+v.toFixed(1)+'%';
+  return `<table class="bm"><thead><tr><th>Period</th><th>2025 barks</th>
+      <th>2026 barks</th><th>Change</th></tr></thead><tbody>
+    <tr><td>January to July</td><td>${num(s25)}</td><td>${num(s26)}</td>
+      <td class="verdict ${ytd>0?'ahead':'behind'}">${sign(ytd)}</td></tr>
+    <tr><td>July only</td><td>${num(d.y25[6])}</td><td>${num(d.y26[6])}</td>
+      <td class="verdict ${jul>0?'ahead':'behind'}">${sign(jul)}</td></tr>
+    <tr><td>August (2026 pro-rata)</td><td>${num(d.y25[7])}</td><td>${num(augProj)}</td>
+      <td class="verdict ${aug>0?'ahead':'behind'}">${sign(aug)}</td></tr>
+    </tbody></table>
+    <div class="note"><b>Categories counted (${d.cats.length}):</b> ${d.cats.join(', ')}.
+      Derived from Iterable list ${d.listId} <em>${d.listName}</em> plus the category links
+      inside each template. ${d.excluded}</div>`;
+}
+
+
+/* ---------- data sources and known gaps ---------- */
+const SOURCES = [
+  ['Weekly flow metrics',
+   'Sends, filtered opens, clicks, unsubscribes, bounces, projects submitted, PPR revenue',
+   'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
+   'Email Campaign Group = buyer_nurture &middot; 27 May to 1 Sep 2026 &middot; grouped by week'],
+  ['Comm-level 4-week figures',
+   'Same measures, per campaign',
+   'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
+   'Same group filter &middot; 4 Aug since launch 2026 &middot; Country in United Kingdom, United States'],
+  ['Category benchmarks',
+   'Open rate, CTR, unsubscribe, bounce, projects per 1k',
+   'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
+   'Wedding: SubGroup = weddings. Moving Home: SubGroup in cleaning, house_cleaning, odd_jobs, home_and_garden. Both 1 to 16 Aug 2026'],
+  ['Category seasonality series',
+   'Monthly filtered open rate, Jan 2025 to Aug 2026',
+   'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
+   'Same subgroup filters &middot; grouped by month'],
+  ['Legacy wedding campaigns, year on year',
+   'Sends, opens, clicks, unsubscribes, projects per campaign',
+   'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
+   'SubGroup = weddings &middot; 21 Jul to 17 Aug 2025 against 4 Aug since launch 2026'],
+  ['Bark demand by category',
+   'Projects submitted',
+   'Tableau &middot; Projects - Country-Category-Date-Channel-Source (30c57132)',
+   'Category in the sets listed above &middot; monthly &middot; Jan 2025 to 16 Aug 2026'],
+  ['Control arms',
+   'Held-out population, attributed projects',
+   'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
+   'Custom calculation SUM([email_send_skip_count]) grouped by Campaign Name (id). Needed because control campaigns register zero sends. There is no Email Send Skip Count measure; the raw column must be summed'],
+  ['Push, SMS and WhatsApp',
+   'Sends, taps (opens), clicks, bounces, attributed projects per 1k',
+   'Tableau &middot; CRM - Push-SMS-Whatsapp Reporting (6a536c4f)',
+   'Campaign Group = buyer_nurture &middot; Attribution Mode = any_7d_post_send &middot; 27 May to 1 Sep 2026'],
+  ['Identifiers and creative only',
+   'Campaign IDs, template IDs, journey (workflowId) mapping, subject lines, hero images, list names',
+   'Iterable API',
+   'No engagement or conversion figure anywhere in this report comes from Iterable']
+];
+
+const GAPS = [
+  ['Holdout and incremental lift','Not available',
+   'Project lift per 1K buyers against the dissolved holdout lives in the Buyer Journey Experiment Report. That workbook runs on embedded live JDBC connections that are not published to Tableau Cloud, so they cannot be queried. This report deliberately leaves incrementality blank rather than substituting send-attributed conversion for it. To automate, the datasource needs publishing.'],
+  ['Subject lines and creative for 7 of 10 comms','Not pulled',
+   'Wedding emails 3 to 6 and Moving Home emails 2 to 4 show a placeholder. These are available in Iterable but each template returns 150k+ characters, so they were not retrieved. Nothing has been guessed or filled in.'],
+  ['Wedding category set','Inferred, not authoritative',
+   'Iterable list 9875473 is dynamic and its API returns only metadata, not segment criteria. The 12 wedding categories were derived from template logic and control campaign names, then validated against Tableau category names. Worth confirming against the segment definition in Iterable before quoting externally.'],
+  ['Push click tracking','Not populated',
+   'Every push campaign in both journeys records zero clicks against 36 taps. Iterable logs a push tap as an open and does not populate a separate click for this channel, so the zero is a tracking artefact. Push CTR is deliberately shown as not applicable rather than as 0%.'],
+  ['Push conversion is not comparable to email','Different attribution',
+   'The push datasource attributes any project within seven days of send, regardless of whether the notification was opened. The email figures in this report use the email datasource\u2019s own project attribution. The two are on different bases, so this report shows them separately and never sums them into a single journey conversion number. Reconciling the two definitions is a question for Max Allos.'],
+  ['SMS and WhatsApp are effectively not firing','Volume too low to report',
+   'Moving Home recorded 11 SMS sends and 1 WhatsApp send in twelve weeks against 20,181 emails. Wedding recorded none at all. This is shown as a count only, with no rates calculated, because nothing meaningful can be derived from single-digit volumes. The likely cause is a consent or phone-number condition on entry.'],
+  ['Country coverage','Minor discrepancy',
+   'Comm-level figures are filtered to United Kingdom and United States, the weekly series is not. This leaves 2 sends per flow unaccounted for in the comm table, roughly 0.01% of volume. Not material, but the two views will not tie exactly.'],
+  ['August 2026 is partial','Data to the 16th',
+   'Both the category benchmarks and the bark demand chart use 1 to 16 August. Rates are unaffected but volume comparisons against full 2025 months are not like for like, which is why the demand chart shows a pro-rata run rate separately.'],
+  ['Arms can be compared on population, not on conversion','Tested, structural',
+   'The sendskip and control tiles are now compared week by week, which dates the holdout dissolution to w/c 13 Jul 2026 and quantifies the split before and after. Conversion cannot be compared in either phase: skip-only campaigns record zero projects everywhere in the datasource, 170.8m skip records on the largest single campaign and roughly 500m across the top 40, with none carrying a project. The push datasource matches, with buyer_count_eligible at zero wherever sends are zero. Attribution is computed against send events in both, so a held-out buyer can never be credited. Lift therefore has to come from the Buyer Journey Experiment Report, which attributes at buyer level, and which this report cannot reach.'],
+  ['Which tile is which is inferred from naming','Confirm in Iterable',
+   'The _1 and _0 sendskip tiles are read as the two holdout arms and control2 as the version-2 control tile, based on campaign naming and firing pattern. The journey node structure is not exposed by the Iterable API, so this mapping should be confirmed against the journey canvas before the split percentages are quoted.'],
+  ['Reporting cadence','Needs a decision',
+   'This report is built for a Monday refresh against complete Monday-to-Sunday weeks. The review checklist asks for Wednesday. Wednesday works and gives the extract more slack, but the week boundary should stay Monday to Sunday either way.'],
+  ['Corrected this week','Was wrong, now fixed',
+   'Earlier versions used a 0.46% bounce benchmark taken from the monthly benchmarking deck, which is a whole-channel figure. The category rates queried from Tableau are 0.251% for weddings and 0.292% for the cleaning and home categories. Both flows still sit below their category, so the conclusion is unchanged.']
+];
+
+function provenance(){
+  return `<div class="sect"><h2>Where every number comes from</h2>
+      <span class="when">Engagement and conversion: Tableau only</span></div>
+    <table class="bm prov"><thead><tr><th>Block</th><th>Measures</th>
+      <th>Source</th><th>Filter and window</th></tr></thead><tbody>`+
+    SOURCES.map(([a,b,c,d])=>`<tr><td>${a}</td><td>${b}</td><td>${c}</td><td>${d}</td></tr>`).join('')+
+    `</tbody></table>
+    <div class="sect"><h2>Known gaps</h2>
+      <span class="when">Flagged, not filled with estimates</span></div>
+    <div class="gaps">`+GAPS.map(([t,st,body])=>`<div class="gap">
+        <div class="gaphead">${t} <span>${st}</span></div><p>${body}</p></div>`).join('')+`</div>`;
+}
+
+
+/* ---------- push and other channels ---------- */
+function pushSection(key){
+  const p=PUSH[key];
+  const reach=p.sends/p.emailSends;
+  const tap=p.opens/p.sends;
+  const rows=p.camps.map(([nm,id,sn,op,mk])=>`<tr>
+      <td>${nm}</td><td>${mk}</td><td>${num(sn)}</td><td>${op}</td>
+      <td>${pct(op/sn,2)}</td>
+      <td><a href="https://app.iterable.com/campaigns/${id}" target="_blank"
+        rel="noopener" style="color:var(--brand);text-decoration:none">${id}</a></td></tr>`).join('');
+
+  const other = p.other.length ? `
+    <div class="sect"><h2>SMS and WhatsApp</h2><span class="when">Barely firing</span></div>
+    <table class="bm"><thead><tr><th>Channel</th><th>Campaign</th><th>Sends</th>
+      <th>Engagement</th><th>Iterable</th></tr></thead><tbody>`+
+      p.other.map(([ch,nm,id,sn,eng])=>`<tr><td>${ch}</td><td style="font-family:var(--mono);font-size:11px">${nm}</td>
+        <td>${sn}</td><td>${eng}</td>
+        <td><a href="https://app.iterable.com/campaigns/${id}" target="_blank" rel="noopener"
+          style="color:var(--brand);text-decoration:none">${id}</a></td></tr>`).join('')+
+    `</tbody></table>
+    <div class="note"><b>12 sends in 12 weeks across four campaigns.</b> Against 20,181 emails
+      in the same journey, that is not a low-performing channel, it is a channel that is not
+      firing. Most likely a missing phone number or consent condition on entry, or a step
+      condition that almost never evaluates true. Worth checking in Iterable before the next
+      report, since the numbers are too small to report on either way.</div>` : `
+    <div class="note"><b>No SMS or WhatsApp sends recorded for this journey</b> in the 12 weeks
+      to 16 August. Either those steps do not exist in the journey or they never triggered.</div>`;
+
+  return `<div class="sect"><h2>Push</h2>
+      <span class="when">${p.camps.length} campaigns &middot; 27 May to 1 Sep 2026</span></div>
+    <p class="barlab"><span>Cumulative since launch</span></p>
+    <div class="kpis">
+      ${statCard('Push sends',num(p.sends),pct(reach,1)+' of email volume')}
+      ${statCard('Push taps',num(p.opens),'recorded as opens')}
+      ${statCard('Tap rate',pct(tap,2),'taps per send')}
+      ${statCard('Clicks','n/a','not tracked for push')}
+    </div>
+    <div class="note"><b>Push reaches almost nobody in these journeys.</b>
+      ${num(p.sends)} sends against ${num(p.emailSends)} emails, so ${pct(reach,1)} of the
+      email audience. Push needs the Bark app installed with notifications enabled, so reach,
+      not creative, is the binding constraint. A tap rate of ${pct(tap,2)} on this volume means
+      roughly ${p.opens} people engaged in twelve weeks.</div>
+    <table class="bm"><thead><tr><th>Campaign</th><th>Markets</th><th>Sends</th>
+      <th>Taps</th><th>Tap rate</th><th>Iterable</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="note"><b>Two things not to read into this.</b> Click count is zero across every
+      push campaign because Iterable records a push tap as an open and does not populate clicks
+      for this channel, so the zero is a tracking artefact and not a performance result.
+      And push conversion is available (${p.projPer1k.toFixed(1)} projects per 1k sends,
+      ${gbp(p.valuePer1k)} per 1k) but it uses a looser attribution than the email figures in
+      this report: any project within seven days of send, regardless of whether the push was
+      opened. It is therefore not comparable with, and must not be added to, the email
+      conversion numbers above.</div>
+    ${other}`;
+}
+
+
+/* ---- Filled in each week by the CRM owner, not derived from data ---- */
+const CYCLE = {
+  weekOf:'Wed 26 Aug to Tue 1 Sep 2026',
+  shipped:[
+    'Nothing shipped to either journey. Both have run unchanged since launch on 25 May, 14 weeks.'
+  ],
+  next:[
+    'Moving Home email 1 unsubscribe fix, still the only significant comm-level issue in either flow.',
+    'Pull the seven outstanding subject lines and hero creatives into this report.',
+    'Raise the March 2026 open-rate step change with Max Allos.'
+  ]
+};
+
+/* ---- Where a human would go to check this by hand ---- */
+const VIEWS = [
+  ['Buyer | Journey | Experiment Reporting',
+   'Marketing Team / CRM / BAU &rarr; Email Experiment Reporting',
+   'Holdout and incremental lift. Owner Max Allos.',
+   'https://eu-west-1a.online.tableau.com/#/site/bark/views/EmailExperimentReporting/BuyerJourneyExperimentReporting'],
+  ['Email Metric Detail (custom view)',
+   'Marketing Team / CRM / BAU &rarr; Email Trends Report',
+   'Engagement by campaign. Saved custom views on this sheet appear as &ldquo;2026-05 Buyer We&hellip;&rdquo; and &ldquo;2605 Buyer Weddin&hellip;&rdquo; in the toolbar; both names are truncated in the screenshots supplied, so confirm the full names before relying on them.',
+   ''],
+  ['Bark Buyer weekly report',
+   'Google Sites',
+   'The existing weekly channel report this deck matches in style.',
+   'https://sites.google.com/bark.com/bark-buyer-crm-weekly-report/home'],
+  ['Bark Buyer Monthly CRM Benchmarking',
+   'Google Sites',
+   'Monthly channel benchmarks. Note these are channel-level, not category-level, so do not use them as the benchmark for a single journey.',
+   'https://sites.google.com/bark.com/bark-buyer-crm-benchmarking/home']
+];
+
+const METRIC_GUIDE = [
+  ['Unsubscribe rate','Primary health metric','At these volumes it is the metric that moves significantly first, and it is where both flows actually fail. Compare against the category, never the channel.'],
+  ['Open rate, filtered','Reach and subject-line read','Excludes Apple MPP inflation. Only meaningful against the same category in the same month, because the whole platform stepped down about 2pp in March 2026.'],
+  ['CTR and CTOR','Creative and offer strength','CTR answers whether the comm earned a click; CTOR separates a subject-line problem from a content problem.'],
+  ['Projects per 1k sends','Commercial outcome','The only metric stakeholders should judge the flow on long term. Needs a rolling four-week window at these volumes; weekly is meaningless.'],
+  ['Holdout lift per 1K buyers','The only causal measure','Not in this report. Everything here is correlational. Sits in the Buyer Journey Experiment Report.'],
+  ['Bark volume by category','Demand context','Separates a flow problem from a market problem. Checked before concluding anything about conversion.']
+];
+
+function cycleAndActions(key){
+  const f=FLOWS[key];
+  return `<div class="sect"><h2>Recommended next steps</h2>
+      <span class="when">${f.name} &middot; ${CYCLE.weekOf}</span></div>
+    <div class="acts">`+f.actions.map(([t,own,body],i)=>`<div class="act">
+        <div class="actn">${i+1}</div>
+        <div><div class="acth">${t} <span>${own}</span></div><p>${body}</p></div>
+      </div>`).join('')+`</div>
+
+    <div class="sect"><h2>Change log</h2><span class="when">Filled in by hand, not from data</span></div>
+    <div class="cols">
+      <div class="col w"><h3>Shipped this week</h3><ul>${
+        CYCLE.shipped.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+      <div class="col a"><h3>Next week</h3><ul>${
+        CYCLE.next.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    </div>`;
+}
+
+function whereToLook(){
+  return `<div class="sect"><h2>Where to check this by hand</h2>
+      <span class="when">Saved views and dashboards</span></div>
+    <table class="bm prov"><thead><tr><th>View</th><th>Location</th>
+      <th>What it is for</th></tr></thead><tbody>`+
+    VIEWS.map(([n,loc,why,url])=>`<tr>
+      <td>${url?`<a href="${url}" target="_blank" rel="noopener"
+        style="color:var(--brand);text-decoration:none">${n}</a>`:n}</td>
+      <td>${loc}</td><td>${why}</td></tr>`).join('')+`</tbody></table>
+
+    <div class="sect"><h2>Which metrics to read first</h2>
+      <span class="when">In priority order</span></div>
+    <table class="bm prov"><thead><tr><th>Metric</th><th>Why it matters</th>
+      <th>How to read it</th></tr></thead><tbody>`+
+    METRIC_GUIDE.map(([m,w,h])=>`<tr><td>${m}</td><td>${w}</td><td>${h}</td></tr>`).join('')+
+    `</tbody></table>`;
+}
+
+
+/* ---------- test against control ---------- */
+function controlSection(key){
+  const a=ARMS[key], b=BENCH[key];
+  const sum=(arr,f,t)=>arr.slice(f,t+1).reduce((x,y)=>x+y,0);
+  const phase=(f,t)=>{
+    const sn=sum(a.sends,f,t), hd=sum(a.skip1,f,t)+sum(a.skip0,f,t)+sum(a.ctrl2,f,t);
+    return {sends:sn, held:hd, share:hd/(sn+hd)};
+  };
+  const L=phase(a.live[0],a.live[1]), P=phase(a.post[0],a.post[1]);
+
+  /* holdout share by week */
+  const w=980,h=180,pl=44,pr=20,pt=16,pb=28, iw=w-pl-pr, ih=h-pt-pb, n=a.weeks.length;
+  const shares=a.weeks.map((_,i)=>{
+    const hd=a.skip1[i]+a.skip0[i]+a.ctrl2[i], sn=a.sends[i];
+    return (sn+hd)? hd/(sn+hd) : null;
+  });
+  const max=Math.max(...shares.filter(x=>x!=null))*1.15;
+  const X=i=>pl+(iw/(n-1))*i, Y=v=>pt+ih-(v/max)*ih;
+  const pts=shares.map((v,i)=>v==null?null:`${X(i)},${Y(v)}`).filter(Boolean).join(' ');
+  const dots=shares.map((v,i)=>v==null?'':`<circle cx="${X(i)}" cy="${Y(v)}" r="2.6"
+      fill="${i>a.live[1]?'#dc2626':'#fff'}" stroke="${i>a.live[1]?'#dc2626':'#171717'}"
+      stroke-width="1.6"/>`).join('');
+  const brk=`<line x1="${X(a.live[1])}" x2="${X(a.live[1])}" y1="${pt}" y2="${pt+ih}"
+      stroke="#dc2626" stroke-dasharray="3 3"/>
+    <text x="${X(a.live[1])-6}" y="${pt+11}" text-anchor="end" font-size="9"
+      font-family="monospace" fill="#dc2626">holdout stops firing</text>`;
+  const lab=a.weeks.map((m,i)=>`<text x="${X(i)}" y="${h-9}" text-anchor="middle" font-size="8.5"
+      font-family="monospace" fill="${i>a.live[1]?'#dc2626':'#a3a3a3'}">${m}</text>`).join('');
+  const yax=[0,.5,1].map(f=>`<text x="${pl-8}" y="${pt+ih*(1-f)+3}" text-anchor="end"
+      font-size="9" font-family="monospace" fill="#a3a3a3">${(max*f*100).toFixed(0)}%</text>`).join('');
+
+  return `<div class="sect"><h2>Test against control</h2>
+      <span class="when">Sendskip and control tiles inside journey ${FLOWS[key].journey}</span></div>
+
+    <table class="bm"><thead><tr><th>Phase</th><th>Weeks</th><th>Test (sent)</th>
+      <th>Held out</th><th>Holdout share</th><th>State</th></tr></thead><tbody>
+      <tr><td>Test live</td><td>25 May to 13 Jul</td><td>${num(L.sends)}</td>
+        <td>${num(L.held)}</td><td>${pct(L.share,1)}</td>
+        <td class="verdict ahead">properly split</td></tr>
+      <tr><td>After dissolution</td><td>17 Aug since launch</td><td>${num(P.sends)}</td>
+        <td>${num(P.held)}</td><td>${pct(P.share,1)}</td>
+        <td class="verdict behind">split collapsed</td></tr>
+    </tbody></table>
+
+    <div class="chart" style="margin-top:14px">
+      <h3>Holdout share of audience by week</h3>
+      <div class="sub">Red from the week the _1 arm stopped firing</div>
+      <svg viewBox="0 0 ${w} ${h}" width="100%" role="img"
+        aria-label="Holdout share of audience by week, showing the collapse after 13 July">
+        ${yax}${brk}<polyline points="${pts}" fill="none" stroke="#171717" stroke-width="1.8"/>
+        ${dots}${lab}
+      </svg></div>
+
+    <div class="keyfind"><div class="kf">What the arms show, and what they cannot</div>
+      <p><b>The split was designed properly and then broke.</b> While the test ran, the
+        holdout was ${pct(L.share,1)} of the audience, which is a sound experiment. From
+        w/c 20 Jul it is ${pct(P.share,1)}, because the <em>_1</em> arm stopped firing
+        after w/c 13 Jul${key==='mov'?' and the _0 arm stopped with it':' , leaving only the smaller _0 arm and the control tile'}.
+        That date is the holdout dissolution, and it is visible in the chart above.</p>
+      <p><b>Conversion still cannot be compared across the arms, in either phase.</b> This
+        was tested, not assumed. Skip-only campaigns record zero projects everywhere in the
+        datasource, not just here: 170.8m skip records on the largest single campaign and
+        roughly 500m across the top 40, with no projects on any of them. The push datasource
+        behaves the same way, with <em>buyer_count_eligible</em> at zero wherever sends are
+        zero. Project attribution is computed against send events in both, so a held-out
+        buyer can never be credited with a project. The arms can be compared on population,
+        which is what this section does. They cannot be compared on conversion.</p>
+      <p><b>This is why the lift figures came from elsewhere.</b> The Buyer Journey
+        Experiment Report computes lift at buyer level rather than from send attribution,
+        which is exactly why it can produce a number this datasource cannot. Its
+        datasources are unpublished live JDBC connections, so this report cannot reach it.</p>
+    </div>
+
+    <table class="bm"><thead><tr><th>Arm</th><th>Iterable</th><th>Role</th>
+      <th>Status</th></tr></thead><tbody>`+
+      a.arms.map(([nm,id,role,st])=>`<tr${st.includes('stopped')?' class="flagrow"':''}>
+        <td style="font-family:var(--mono);font-size:11px">${nm}${st.includes('stopped')?' &#9888;':''}</td>
+        <td><a href="https://app.iterable.com/campaigns/${id}" target="_blank" rel="noopener"
+          style="color:var(--brand);text-decoration:none">${id}</a></td>
+        <td>${role}</td><td>${st}</td></tr>`).join('')+
+    `</tbody></table>
+    <div class="note">Per-category control tiles hold a further ${a.catControls} buyers in
+      total and are not split by week here. <b>Last measured lift, carried forward:</b>
+      ${a.priorLift}, from the Experiment 03 cohort analysis, covering the period when the
+      holdout was intact. Not reproducible from any published Tableau datasource, so confirm
+      against the Experiment Report before quoting. It is not this week's number, and it
+      cannot be refreshed while the holdout is dissolved.</div>`;
+}
+
+/* ---------- render ---------- */
+function render(key){
+  const f=FLOWS[key], rows=f.weeks.map(W);
+  /* Weeks run Wednesday to Tuesday, anchored to the Wednesday run day, so the last
+     row is always a complete 7 days and needs no partial-week handling. */
+  const cur=rows[rows.length-1], prev=rows[rows.length-2];
+  const all=rows.reduce((a,x)=>({s:a.s+x.s,o:a.o+x.o,c:a.c+x.c,u:a.u+x.u,
+                                 b:a.b+x.b,p:a.p+x.p,r:a.r+x.r}),
+                        {s:0,o:0,c:0,u:0,b:0,p:0,r:0});
+  const c4=f.comms.reduce((a,c)=>({s:a.s+c.s,p:a.p+c.p}),{s:0,p:0});
+
+  /* Bar 1 — overall to date, no deltas. */
+  const bar1=[
+    statCard('Sends',num(all.s),'since launch'),
+    statCard('Open rate',pct(all.o/all.s,2),num(all.o)+' opens'),
+    statCard('CTR',pct(all.c/all.s,3),num(all.c)+' clicks'),
+    statCard('CTOR',pct(all.o?all.c/all.o:0,1),'clicks per open'),
+    statCard('Unsub rate',pct(all.u/all.s,3),num(all.u)+' unsubs'),
+    statCard('Bounce rate',pct(all.b/all.s,3),num(all.b)+' bounces'),
+    statCard('Projects',num(all.p),(all.p/(all.s/1000)).toFixed(2)+' per 1k'),
+    statCard('PPR revenue',gbp(all.r),'attributed, 7d')
+  ].join('');
+
+  /* Bar 2 — last week against the week before. */
+  const bar2=[
+    wowCard('Sends',num(cur.s),delta(cur.s,prev.s,{dir:'neutral'})),
+    wowCard('Open rate',pct(cur.o/cur.s,2),delta(cur.o/cur.s,prev.o/prev.s,{pp:true}),
+            ztest(cur.o,cur.s,prev.o,prev.s)),
+    wowCard('CTR',pct(cur.c/cur.s,3),delta(cur.c/cur.s,prev.c/prev.s,{pp:true,dp:3}),
+            ztest(cur.c,cur.s,prev.c,prev.s)),
+    wowCard('CTOR',pct(cur.o?cur.c/cur.o:0,1),delta(cur.c/cur.o,prev.c/prev.o,{pp:true,dp:1}),
+            ztest(cur.c,cur.o,prev.c,prev.o)),
+    wowCard('Unsub rate',pct(cur.u/cur.s,3),delta(cur.u/cur.s,prev.u/prev.s,{pp:true,dir:'down',dp:3}),
+            ztest(cur.u,cur.s,prev.u,prev.s)),
+    wowCard('Bounce rate',pct(cur.b/cur.s,3),delta(cur.b/cur.s,prev.b/prev.s,{pp:true,dir:'down',dp:3}),
+            ztest(cur.b,cur.s,prev.b,prev.s)),
+    wowCard('Projects',num(cur.p),delta(cur.p,prev.p)),
+    wowCard('PPR revenue',gbp(cur.r),delta(cur.r,prev.r))
+  ].join('');
+
+  const list=(items,cls)=>`<div class="col ${cls}">
+    <h3>${cls==='w'?'What is working':'What needs attention'}</h3>
+    <ul>${items.map(([h,b])=>`<li><b>${h}</b> ${b}</li>`).join('')}</ul></div>`;
+
+  document.getElementById('p-'+key).innerHTML = `
+    <div class="sect"><h2>Overall performance to date</h2>
+      <span class="when">27 May to 1 Sep 2026 &middot; ${f.markets}</span></div>
+    <p class="barlab"><span>Cumulative since launch &middot; weeks run Wednesday to Tuesday</span></p>
+    <div class="kpis">${bar1}</div>
+
+    <div class="sect bar2"><h2>Week on week</h2>
+      <span class="when">26 Aug&ndash;1 Sep vs 19&ndash;25 Aug</span></div>
+    <p class="barlab"><span>Latest complete week and its move on the week before</span></p>
+    <div class="kpis">${bar2}</div>
+
+    <div class="keyfind"><div class="kf">Read this first</div>
+      ${f.context.map(p=>`<p>${p}</p>`).join('')}</div>
+
+    <div class="sect"><h2>Against comparable categories</h2>
+      <span class="when">Like-for-like, not whole channel</span></div>
+    ${bmTable(key,all,cur)}
+
+    ${controlSection(key)}
+
+    <div class="sect"><h2>Is this seasonal?</h2>
+      <span class="when">Category open rate, Jan 2025 to Aug 2026</span></div>
+    ${seasonChart(key)}
+
+    <div class="sect"><h2>Is the demand still there?</h2>
+      <span class="when">Barks placed in this journey&rsquo;s categories</span></div>
+    ${demandChart(key)}
+    ${demandSummary(key)}
+
+    ${key==='wed' ? `<div class="sect"><h2>Legacy wedding campaigns, this window last year</h2>
+      <span class="when">21 Jul to 17 Aug &middot; 2025 vs 2026</span></div>${yoyTable()}` : ''}
+
+    <div class="sect"><h2>Trend since launch</h2><span class="when">Weekly</span></div>
+    ${chart(f.weeks)}
+
+    <div class="sect"><h2>The flow, comm by comm</h2>
+      <span class="when">Last 4 complete weeks &middot; 4 Aug since launch 2026</span></div>
+    ${ladder(f.comms,key)}
+
+    ${splitTable(f.split)}
+
+    ${pushSection(key)}
+
+    <div class="sect"><h2>Wins, issues and learnings</h2>
+      <span class="when">Significance-tested &middot; week of 10 Aug</span></div>
+    <div class="note"><b>Every claim below has been tested.</b> Differences are two-proportion
+      z-tests at the 95% level, either against the category benchmark or against the rest of the
+      same flow. Anything that fails the test is labelled as such rather than dropped, because
+      a movement that is not yet significant is still worth watching. At these volumes no
+      week-on-week change in either flow clears significance, so the weekly arrows should not
+      drive decisions.</div>
+    <div class="cols">${list(f.wins,'w')}${list(f.attention,'a')}</div>
+
+    ${cycleAndActions(key)}
+
+    ${whereToLook()}
+
+    ${provenance()}
+
+    <footer>
+      <h4>How to read this</h4>
+      <ul>
+        <li><b>Weeks run Wednesday to Tuesday</b>, anchored to the Wednesday run day, so
+            the latest week is always a complete seven days with no partial-week stub. The
+            trade-off is that the final day or two of each week is still accruing opens and
+            clicks when the report is built, so the most recent week reads slightly low and
+            firms up over the following days. Compare like with like across weeks rather than
+            reading a single week's absolute level too precisely.</li>
+        <li><b>Two bars, two jobs.</b> The first is cumulative since launch and carries no
+            arrows, because a 12-week total does not move week to week. The second is last
+            week against the week before, and only that bar is coloured.</li>
+        <li><b>Colour follows the metric.</b> Green means the move was good, red means it was
+            not, grey means neither. Sends are always grey since more volume is not by itself
+            better or worse. Unsubscribes and bounces invert, so a rise shows red.</li>
+        <li><b>Engagement and conversion</b> come from the Tableau
+            <em>Email &middot; Country-Date-Domain-Campaign</em> datasource, filtered to
+            <em>Email Campaign Group = buyer_nurture</em> and split by journey from the campaign
+            naming convention. Open rate is the filtered open rate, so it excludes Apple Mail
+            Privacy Protection inflation.</li>
+        <li><b>Benchmarks are category-level</b> and rebuilt from the same datasource each week
+            using the subgroups each flow actually promotes. Wedding sits against
+            <em>weddings</em>; Moving Home against <em>cleaning, house_cleaning, odd_jobs</em>
+            and <em>home_and_garden</em>.</li>
+        <li><b>Conversion</b> is projects submitted and PPR revenue attributed to a send within
+            seven days. It answers what an email touched, not what the flow caused. Holdout
+            lift per 1K buyers still comes from the Buyer Journey Experiment Report, which runs
+            on an unpublished live JDBC datasource and has to be added by hand.</li>
+        <li><b>Comm-level figures</b> are rolled up over four weeks on purpose. A single week
+            per comm lands at 300 to 1,200 sends, where a handful of clicks swings the rate
+            more than any creative change would.</li>
+        <li><b>Bark volume</b> comes from the Tableau <em>Projects &middot;
+            Country-Category-Date-Channel-Source</em> datasource, counting projects submitted
+            in the categories each journey targets. August 2026 covers 1 to 16 August only,
+            so the chart marks both the actual partial figure and a pro-rata run rate.</li>
+        <li><b>Send skips</b> are excluded from all send counts, so the control and holdout
+            campaigns inside both journeys sit outside these figures.</li>
+      </ul>
+    </footer>`;
+}
+
+['wed','mov'].forEach(render);
+
+const tabs=[...document.querySelectorAll('.tab')];
+tabs.forEach((t,i)=>{
+  t.addEventListener('click',()=>{
+    tabs.forEach(o=>{
+      const on=o===t;
+      o.setAttribute('aria-selected',on);
+      document.getElementById(o.getAttribute('aria-controls')).hidden=!on;
+    });
+  });
+  t.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+    const j=(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length;
+    tabs[j].click(); tabs[j].focus();
+  });
+});
+
+</script>
+</body>
+</html>
