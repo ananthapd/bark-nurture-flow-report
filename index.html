@@ -93,6 +93,32 @@
   .sig.no{color:var(--mute);border-color:var(--line);background:#fafafa}
   .vsrest{font-family:var(--mono);font-size:9px;color:var(--faint);margin-left:6px;
           letter-spacing:.06em;text-transform:uppercase}
+  /* collapsible sections */
+  details.sec{border-top:1px solid var(--line-2);margin-top:0}
+  details.sec>summary{list-style:none;cursor:pointer;padding:15px 0 14px;
+    display:flex;align-items:baseline;gap:12px;user-select:none}
+  details.sec>summary::-webkit-details-marker{display:none}
+  details.sec>summary::before{content:'+';font-family:var(--mono);font-size:15px;
+    color:var(--faint);width:14px;flex:none;line-height:1.2}
+  details.sec[open]>summary::before{content:'\2013'}
+  details.sec>summary h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+  details.sec>summary .when{font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--faint)}
+  details.sec>summary:hover h2{color:var(--brand)}
+  details.sec>.body{padding:0 0 22px 26px}
+  @media (max-width:840px){ details.sec>.body{padding-left:0} }
+  /* chart hover tooltip */
+  #tip{position:fixed;z-index:99;pointer-events:none;opacity:0;transition:opacity .1s;
+    background:#171717;color:#fff;font-family:var(--mono);font-size:11px;
+    padding:6px 9px;border-radius:2px;white-space:nowrap;line-height:1.45}
+  #tip b{color:#fff;font-weight:600}
+  [data-tip]{cursor:crosshair}
+  /* metric toggle */
+  .mtoggle{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+  .mtoggle button{appearance:none;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;
+    text-transform:uppercase;padding:5px 9px;border:1px solid var(--line-2);background:#fff;
+    color:var(--mute);cursor:pointer}
+  .mtoggle button[aria-pressed="true"]{background:#171717;color:#fff;border-color:#171717}
   .na{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.04em}
   .prov td{font-size:11.5px;vertical-align:top;line-height:1.5}
   .prov td:first-child{font-family:var(--sans);font-weight:500;font-size:12.5px}
@@ -195,6 +221,7 @@
 </style>
 </head>
 <body>
+<div id="tip"></div>
 <div class="wrap">
 
   <div class="masthead">
@@ -206,9 +233,10 @@
       Wedding &middot; journey <b>950956</b><br>
       Moving Home &middot; journey <b>951750</b><br>
       Email + Push &middot; Tableau<br>
+      PPR shown per 1k sends<br>
       Label <b>campaign_group: buyer_nurture</b><br>
       Week ending <b>Tue 1 Sep 2026</b><br>
-      Generated <b>Wed 2 Sep 2026</b>
+      Generated <b>Wed 9 Sep 2026</b>
     </div>
   </div>
 
@@ -516,6 +544,12 @@ const pct=(x,d=2)=>(x*100).toFixed(d)+'%';
 const num=x=>x.toLocaleString('en-GB');
 const gbp=x=>'\u00a3'+x.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
 const W=r=>({wc:r[0],s:r[1],o:r[2],c:r[3],u:r[4],b:r[5],p:r[6],r:r[7]||0});
+const per1k=(n,s)=>s?n/(s/1000):0;
+const gbp1k=(r,s)=>'\u00a3'+per1k(r,s).toFixed(2);
+/* Collapsible section. open=true for the two the reader should always see. */
+const sec=(title,when,body,open)=>`<details class="sec"${open?' open':''}>
+    <summary><h2>${title}</h2><span class="when">${when}</span></summary>
+    <div class="body">${body}</div></details>`;
 
 /* Direction of good varies by metric:
    'up'      higher is better (open, ctr, ctor, projects, ppr)
@@ -568,19 +602,22 @@ function chart(weeks){
   const maxS=Math.max(...rows.map(r=>r.s))*1.1;
   const maxR=Math.max(...rows.flatMap(r=>[r.o/r.s, r.c/r.s*20]))*1.15;
   const x=i=>pl+bw*i+bw/2, yS=v=>pt+ih-(v/maxS)*ih, yR=v=>pt+ih-(v/maxR)*ih;
+  const tip=r=>`w/c ${r.wc}|Sends <b>${num(r.s)}</b>|Open <b>${pct(r.o/r.s,2)}</b>`+
+    `|CTR <b>${pct(r.c/r.s,3)}</b>|Unsub <b>${pct(r.u/r.s,3)}</b>`;
   const bars=rows.map((r,i)=>`<rect x="${pl+bw*i+bw*0.24}" y="${yS(r.s)}" width="${bw*0.52}"
-       height="${pt+ih-yS(r.s)}" fill="#e8ecf3"/>`).join('');
+       height="${pt+ih-yS(r.s)}" fill="#e8ecf3" data-tip="${tip(r)}"/>`).join('');
   const line=(vals,col)=>`<polyline points="${vals.map((v,i)=>`${x(i)},${yR(v)}`).join(' ')}"
        fill="none" stroke="${col}" stroke-width="1.8"/>`+
-    vals.map((v,i)=>`<circle cx="${x(i)}" cy="${yR(v)}" r="2.6" fill="#fff"
-       stroke="${col}" stroke-width="1.6"/>`).join('');
+    vals.map((v,i)=>`<circle cx="${x(i)}" cy="${yR(v)}" r="4.5" fill="transparent"
+       data-tip="${tip(rows[i])}"/><circle cx="${x(i)}" cy="${yR(v)}" r="2.6" fill="#fff"
+       stroke="${col}" stroke-width="1.6" pointer-events="none"/>`).join('');
   const labels=rows.map((r,i)=>`<text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="9.5"
        font-family="monospace" fill="${i===n-1?'#171717':'#a3a3a3'}">${r.wc}</text>`).join('');
   const grid=[0,.5,1].map(f=>`<line x1="${pl}" x2="${w-pr}" y1="${pt+ih*f}" y2="${pt+ih*f}"
        stroke="#f0f0f0"/>`).join('');
   return `<div class="chart">
-    <h3>Weekly send volume, open rate and CTR (Wed&ndash;Tue)</h3>
-    <div class="sub">Fourteen weeks since launch &middot; w/c 27 May to 1 Sep 2026</div>
+    <h3>Weekly send volume, open rate and CTR</h3>
+    <div class="sub">Hover any point for the underlying numbers</div>
     <svg viewBox="0 0 ${w} ${h}" width="100%" role="img"
          aria-label="Weekly sends, open rate and CTR since launch">
       ${grid}${bars}${line(rows.map(r=>r.o/r.s),'#171717')}${line(rows.map(r=>r.c/r.s*20),'#2563eb')}${labels}
@@ -590,6 +627,72 @@ function chart(weeks){
       <span><i style="background:#171717"></i>Open rate</span>
       <span><i style="background:#2563eb"></i>CTR (&times;20 scale)</span>
     </div></div>`;
+}
+
+/* ---------- performance since launch in 3-month increments, metric switchable ---------- */
+const METRICS=[
+  ['sends','Send volume',   d=>d.s,            v=>num(Math.round(v))],
+  ['open', 'Open rate',     d=>d.o/d.s,        v=>pct(v,2)],
+  ['ctr',  'Click rate',    d=>d.c/d.s,        v=>pct(v,3)],
+  ['unsub','Unsubs',        d=>d.u/d.s,        v=>pct(v,3)],
+  ['bounce','Bounces',      d=>d.b/d.s,        v=>pct(v,3)],
+  ['proj', 'Projects / 1k', d=>per1k(d.p,d.s), v=>v.toFixed(3)],
+  ['ppr',  'PPR / 1k',      d=>per1k(d.r,d.s), v=>'\u00a3'+v.toFixed(2)]
+];
+
+/* 13 Wed-Tue weeks = one 3-month increment. Trailing partial blocks are labelled. */
+function increments(weeks){
+  const rows=weeks.map(W), out=[];
+  for(let i=0;i<rows.length;i+=13){
+    const blk=rows.slice(i,i+13);
+    const a=blk.reduce((x,y)=>({s:x.s+y.s,o:x.o+y.o,c:x.c+y.c,u:x.u+y.u,
+                                b:x.b+y.b,p:x.p+y.p,r:x.r+y.r}),
+                       {s:0,o:0,c:0,u:0,b:0,p:0,r:0});
+    a.label=`Months ${Math.floor(i/13)*3+1}\u2013${Math.floor(i/13)*3+3}`;
+    a.range=`${blk[0].wc} to ${blk[blk.length-1].wc}`;
+    a.weeks=blk.length; a.partial=blk.length<13;
+    out.push(a);
+  }
+  return out;
+}
+
+function incrementChart(key){
+  const blocks=increments(FLOWS[key].weeks);
+  const id='inc-'+key;
+  const series=METRICS.map(([k,lab,get,f])=>({k,lab,
+    vals:blocks.map(b=>get(b)), fmt:blocks.map(b=>f(get(b)))}));
+  const w=980,h=240,pl=64,pr=24,pt=18,pb=42, iw=w-pl-pr, ih=h-pt-pb;
+  const n=blocks.length, bw=iw/Math.max(n,4);
+  const svg=series.map((sr,si)=>{
+    const max=Math.max(...sr.vals)*1.2||1;
+    const y=v=>pt+ih-(v/max)*ih;
+    const bars=blocks.map((b,i)=>`<g data-tip="${b.label} (${b.range})|${b.weeks} weeks${b.partial?' \u2014 incomplete':''}|${sr.lab} <b>${sr.fmt[i]}</b>|Sends <b>${num(b.s)}</b>">
+        <rect x="${pl+bw*i+bw*0.2}" y="${y(sr.vals[i])}" width="${bw*0.6}"
+          height="${Math.max(pt+ih-y(sr.vals[i]),1)}"
+          fill="${b.partial?'#c7d8fb':'#2563eb'}"/>
+        <text x="${pl+bw*i+bw*0.5}" y="${y(sr.vals[i])-7}" text-anchor="middle"
+          font-size="11" font-family="monospace" fill="#171717">${sr.fmt[i]}</text></g>`).join('');
+    const lab=blocks.map((b,i)=>`<text x="${pl+bw*i+bw*0.5}" y="${h-24}" text-anchor="middle"
+        font-size="10" font-family="monospace" fill="#737373">${b.label}</text>
+      <text x="${pl+bw*i+bw*0.5}" y="${h-11}" text-anchor="middle"
+        font-size="8.5" font-family="monospace" fill="#a3a3a3">${b.range}${b.partial?' *':''}</text>`).join('');
+    return `<svg data-series="${sr.k}" viewBox="0 0 ${w} ${h}" width="100%" role="img"
+        aria-label="${sr.lab} by three-month increment since launch"
+        style="display:${si===0?'block':'none'}">
+        <line x1="${pl}" x2="${w-pr}" y1="${pt+ih}" y2="${pt+ih}" stroke="#d4d4d4"/>
+        ${bars}${lab}</svg>`;
+  }).join('');
+  return `<div class="chart" id="${id}">
+    <h3>Performance since launch, in 3-month increments</h3>
+    <div class="sub">Switch metric &middot; pale bars are incomplete periods</div>
+    <div class="mtoggle">${METRICS.map(([k,lab],i)=>
+      `<button data-m="${k}" aria-pressed="${i===0}">${lab}</button>`).join('')}</div>
+    ${svg}
+    <div class="note" style="margin-bottom:0">Only
+      ${blocks.filter(b=>!b.partial).length} complete 3-month period${blocks.filter(b=>!b.partial).length===1?'':'s'}
+      so far, so this chart is thin until the flow has been live longer. It fills out
+      from December.</div>
+  </div>`;
 }
 
 /* ---------- seasonality chart: same months, both years ---------- */
@@ -737,7 +840,7 @@ function ladder(comms,key){
 function splitTable(split){
   if(split.length<2) return '';
   const tot=split.reduce((a,r)=>a+r[1],0);
-  return `<div class="sect"><h2>Market split</h2><span class="when">Last 4 complete weeks</span></div>
+  return `<p class="barlab" style="margin-top:22px"><span>Market split &middot; last 4 weeks</span></p>
     <table class="bm"><thead><tr><th>Market</th><th>Sends</th><th>Open rate</th>
       <th>CTR</th><th>Share of sends</th></tr></thead><tbody>`+
     split.map(([m,s,o,c])=>`<tr><td>${m}</td><td>${num(s)}</td><td>${pct(o/s,1)}</td>
@@ -889,14 +992,11 @@ const GAPS = [
 ];
 
 function provenance(){
-  return `<div class="sect"><h2>Where every number comes from</h2>
-      <span class="when">Engagement and conversion: Tableau only</span></div>
-    <table class="bm prov"><thead><tr><th>Block</th><th>Measures</th>
+  return `<table class="bm prov"><thead><tr><th>Block</th><th>Measures</th>
       <th>Source</th><th>Filter and window</th></tr></thead><tbody>`+
     SOURCES.map(([a,b,c,d])=>`<tr><td>${a}</td><td>${b}</td><td>${c}</td><td>${d}</td></tr>`).join('')+
     `</tbody></table>
-    <div class="sect"><h2>Known gaps</h2>
-      <span class="when">Flagged, not filled with estimates</span></div>
+    <p class="barlab" style="margin-top:24px"><span>Known gaps &middot; flagged, not filled with estimates</span></p>
     <div class="gaps">`+GAPS.map(([t,st,body])=>`<div class="gap">
         <div class="gaphead">${t} <span>${st}</span></div><p>${body}</p></div>`).join('')+`</div>`;
 }
@@ -914,7 +1014,7 @@ function pushSection(key){
         rel="noopener" style="color:var(--brand);text-decoration:none">${id}</a></td></tr>`).join('');
 
   const other = p.other.length ? `
-    <div class="sect"><h2>SMS and WhatsApp</h2><span class="when">Barely firing</span></div>
+    <p class="barlab" style="margin-top:22px"><span>SMS and WhatsApp &middot; barely firing</span></p>
     <table class="bm"><thead><tr><th>Channel</th><th>Campaign</th><th>Sends</th>
       <th>Engagement</th><th>Iterable</th></tr></thead><tbody>`+
       p.other.map(([ch,nm,id,sn,eng])=>`<tr><td>${ch}</td><td style="font-family:var(--mono);font-size:11px">${nm}</td>
@@ -937,7 +1037,6 @@ function pushSection(key){
       ${statCard('Push sends',num(p.sends),pct(reach,1)+' of email volume')}
       ${statCard('Push taps',num(p.opens),'recorded as opens')}
       ${statCard('Tap rate',pct(tap,2),'taps per send')}
-      ${statCard('Clicks','n/a','not tracked for push')}
     </div>
     <div class="note"><b>Push reaches almost nobody in these journeys.</b>
       ${num(p.sends)} sends against ${num(p.emailSends)} emails, so ${pct(reach,1)} of the
@@ -946,14 +1045,10 @@ function pushSection(key){
       roughly ${p.opens} people engaged in twelve weeks.</div>
     <table class="bm"><thead><tr><th>Campaign</th><th>Markets</th><th>Sends</th>
       <th>Taps</th><th>Tap rate</th><th>Iterable</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="note"><b>Two things not to read into this.</b> Click count is zero across every
-      push campaign because Iterable records a push tap as an open and does not populate clicks
-      for this channel, so the zero is a tracking artefact and not a performance result.
-      And push conversion is available (${p.projPer1k.toFixed(1)} projects per 1k sends,
-      ${gbp(p.valuePer1k)} per 1k) but it uses a looser attribution than the email figures in
-      this report: any project within seven days of send, regardless of whether the push was
-      opened. It is therefore not comparable with, and must not be added to, the email
-      conversion numbers above.</div>
+    <div class="note"><b>Push conversion is on a different attribution basis.</b>
+      ${p.projPer1k.toFixed(1)} projects per 1k sends and \u00a3${p.valuePer1k.toFixed(2)} PPR per 1k,
+      but counted as any project within seven days of send regardless of whether the push was
+      opened. Not comparable with, and must not be added to, the email conversion figures.</div>
     ${other}`;
 }
 
@@ -1019,17 +1114,14 @@ function cycleAndActions(key){
 }
 
 function whereToLook(){
-  return `<div class="sect"><h2>Where to check this by hand</h2>
-      <span class="when">Saved views and dashboards</span></div>
-    <table class="bm prov"><thead><tr><th>View</th><th>Location</th>
+  return `<table class="bm prov"><thead><tr><th>View</th><th>Location</th>
       <th>What it is for</th></tr></thead><tbody>`+
     VIEWS.map(([n,loc,why,url])=>`<tr>
       <td>${url?`<a href="${url}" target="_blank" rel="noopener"
         style="color:var(--brand);text-decoration:none">${n}</a>`:n}</td>
       <td>${loc}</td><td>${why}</td></tr>`).join('')+`</tbody></table>
 
-    <div class="sect"><h2>Which metrics to read first</h2>
-      <span class="when">In priority order</span></div>
+    <p class="barlab" style="margin-top:24px"><span>Which metrics to read first, in priority order</span></p>
     <table class="bm prov"><thead><tr><th>Metric</th><th>Why it matters</th>
       <th>How to read it</th></tr></thead><tbody>`+
     METRIC_GUIDE.map(([m,w,h])=>`<tr><td>${m}</td><td>${w}</td><td>${h}</td></tr>`).join('')+
@@ -1068,9 +1160,7 @@ function controlSection(key){
   const yax=[0,.5,1].map(f=>`<text x="${pl-8}" y="${pt+ih*(1-f)+3}" text-anchor="end"
       font-size="9" font-family="monospace" fill="#a3a3a3">${(max*f*100).toFixed(0)}%</text>`).join('');
 
-  return `<div class="sect"><h2>Test against control</h2>
-      <span class="when">Sendskip and control tiles inside journey ${FLOWS[key].journey}</span></div>
-
+  return `<p class="barlab"><span>Sendskip and control tiles inside journey ${FLOWS[key].journey}</span></p>
     <table class="bm"><thead><tr><th>Phase</th><th>Weeks</th><th>Test (sent)</th>
       <th>Held out</th><th>Holdout share</th><th>State</th></tr></thead><tbody>
       <tr><td>Test live</td><td>25 May to 13 Jul</td><td>${num(L.sends)}</td>
@@ -1132,21 +1222,26 @@ function render(key){
   /* Weeks run Wednesday to Tuesday, anchored to the Wednesday run day, so the last
      row is always a complete 7 days and needs no partial-week handling. */
   const cur=rows[rows.length-1], prev=rows[rows.length-2];
-  const all=rows.reduce((a,x)=>({s:a.s+x.s,o:a.o+x.o,c:a.c+x.c,u:a.u+x.u,
-                                 b:a.b+x.b,p:a.p+x.p,r:a.r+x.r}),
-                        {s:0,o:0,c:0,u:0,b:0,p:0,r:0});
+  const sum=rs=>rs.reduce((a,x)=>({s:a.s+x.s,o:a.o+x.o,c:a.c+x.c,u:a.u+x.u,
+                                   b:a.b+x.b,p:a.p+x.p,r:a.r+x.r}),
+                          {s:0,o:0,c:0,u:0,b:0,p:0,r:0});
+  /* Headline bar is the last 3 months (13 Wed-Tue weeks), not since launch: blending
+     many months hides how the journey is performing now. Since-launch detail lives in
+     the 3-month increment chart further down. */
+  const L3=rows.slice(-13), all=sum(L3), sinceLaunch=sum(rows);
+  const l3from=L3[0].wc, l3to=rows[rows.length-1].wc;
   const c4=f.comms.reduce((a,c)=>({s:a.s+c.s,p:a.p+c.p}),{s:0,p:0});
 
-  /* Bar 1 — overall to date, no deltas. */
+  /* Bar 1 — last 3 months, no deltas. */
   const bar1=[
-    statCard('Sends',num(all.s),'since launch'),
+    statCard('Sends',num(all.s),L3.length+' weeks'),
     statCard('Open rate',pct(all.o/all.s,2),num(all.o)+' opens'),
     statCard('CTR',pct(all.c/all.s,3),num(all.c)+' clicks'),
     statCard('CTOR',pct(all.o?all.c/all.o:0,1),'clicks per open'),
     statCard('Unsub rate',pct(all.u/all.s,3),num(all.u)+' unsubs'),
     statCard('Bounce rate',pct(all.b/all.s,3),num(all.b)+' bounces'),
-    statCard('Projects',num(all.p),(all.p/(all.s/1000)).toFixed(2)+' per 1k'),
-    statCard('PPR revenue',gbp(all.r),'attributed, 7d')
+    statCard('Projects / 1k',per1k(all.p,all.s).toFixed(3),num(all.p)+' projects'),
+    statCard('PPR / 1k sends',gbp1k(all.r,all.s),'attributed within 7d')
   ].join('');
 
   /* Bar 2 — last week against the week before. */
@@ -1163,7 +1258,8 @@ function render(key){
     wowCard('Bounce rate',pct(cur.b/cur.s,3),delta(cur.b/cur.s,prev.b/prev.s,{pp:true,dir:'down',dp:3}),
             ztest(cur.b,cur.s,prev.b,prev.s)),
     wowCard('Projects',num(cur.p),delta(cur.p,prev.p)),
-    wowCard('PPR revenue',gbp(cur.r),delta(cur.r,prev.r))
+    wowCard('PPR / 1k sends',gbp1k(cur.r,cur.s),
+            delta(per1k(cur.r,cur.s),per1k(prev.r,prev.s)))
   ].join('');
 
   const list=(items,cls)=>`<div class="col ${cls}">
@@ -1171,9 +1267,10 @@ function render(key){
     <ul>${items.map(([h,b])=>`<li><b>${h}</b> ${b}</li>`).join('')}</ul></div>`;
 
   document.getElementById('p-'+key).innerHTML = `
-    <div class="sect"><h2>Overall performance to date</h2>
-      <span class="when">27 May to 1 Sep 2026 &middot; ${f.markets}</span></div>
-    <p class="barlab"><span>Cumulative since launch &middot; weeks run Wednesday to Tuesday</span></p>
+    <div class="sect"><h2>Last 3 months</h2>
+      <span class="when">${l3from} to ${l3to} &middot; ${f.markets}</span></div>
+    <p class="barlab"><span>${L3.length} Wed&ndash;Tue weeks &middot; rates recalculated from summed events</span>
+      <span>Since launch: ${num(sinceLaunch.s)} sends</span></p>
     <div class="kpis">${bar1}</div>
 
     <div class="sect bar2"><h2>Week on week</h2>
@@ -1184,50 +1281,43 @@ function render(key){
     <div class="keyfind"><div class="kf">Read this first</div>
       ${f.context.map(p=>`<p>${p}</p>`).join('')}</div>
 
-    <div class="sect"><h2>Against comparable categories</h2>
-      <span class="when">Like-for-like, not whole channel</span></div>
-    ${bmTable(key,all,cur)}
-
-    ${controlSection(key)}
-
-    <div class="sect"><h2>Is this seasonal?</h2>
-      <span class="when">Category open rate, Jan 2025 to Aug 2026</span></div>
-    ${seasonChart(key)}
-
-    <div class="sect"><h2>Is the demand still there?</h2>
-      <span class="when">Barks placed in this journey&rsquo;s categories</span></div>
-    ${demandChart(key)}
-    ${demandSummary(key)}
-
-    ${key==='wed' ? `<div class="sect"><h2>Legacy wedding campaigns, this window last year</h2>
-      <span class="when">21 Jul to 17 Aug &middot; 2025 vs 2026</span></div>${yoyTable()}` : ''}
-
-    <div class="sect"><h2>Trend since launch</h2><span class="when">Weekly</span></div>
-    ${chart(f.weeks)}
-
-    <div class="sect"><h2>The flow, comm by comm</h2>
-      <span class="when">Last 4 complete weeks &middot; 4 Aug since launch 2026</span></div>
-    ${ladder(f.comms,key)}
-
-    ${splitTable(f.split)}
-
-    ${pushSection(key)}
-
     <div class="sect"><h2>Wins, issues and learnings</h2>
-      <span class="when">Significance-tested &middot; week of 10 Aug</span></div>
-    <div class="note"><b>Every claim below has been tested.</b> Differences are two-proportion
-      z-tests at the 95% level, either against the category benchmark or against the rest of the
-      same flow. Anything that fails the test is labelled as such rather than dropped, because
-      a movement that is not yet significant is still worth watching. At these volumes no
-      week-on-week change in either flow clears significance, so the weekly arrows should not
-      drive decisions.</div>
+      <span class="when">Significance-tested</span></div>
+    <div class="note"><b>Every claim below has been tested.</b> Two-proportion z-tests at
+      the 95% level, against the category benchmark or against the rest of the same flow.
+      Anything failing the test is labelled as such rather than dropped. At these volumes
+      most week-on-week changes do not clear significance, so the weekly arrows should not
+      drive decisions on their own.</div>
     <div class="cols">${list(f.wins,'w')}${list(f.attention,'a')}</div>
 
     ${cycleAndActions(key)}
 
-    ${whereToLook()}
+    ${sec('Performance since launch','3-month increments',incrementChart(key),false)}
 
-    ${provenance()}
+    ${sec('Against comparable categories','Like-for-like, not whole channel',
+          bmTable(key,all,cur),false)}
+
+    ${sec('Test against control','Sendskip and control tiles',controlSection(key),false)}
+
+    ${sec('Is this seasonal?','Category open rate, Jan 2025 to Aug 2026',
+          seasonChart(key),false)}
+
+    ${sec('Is the demand still there?','Barks placed in this journey&rsquo;s categories',
+          demandChart(key)+demandSummary(key),false)}
+
+    ${key==='wed' ? sec('Legacy wedding campaigns, this window last year',
+          '21 Jul to 17 Aug &middot; 2025 vs 2026', yoyTable(), false) : ''}
+
+    ${sec('Weekly trend','Every week since launch',chart(f.weeks),false)}
+
+    ${sec('The flow, comm by comm','Last 4 Wed&ndash;Tue weeks',
+          ladder(f.comms,key)+splitTable(f.split),false)}
+
+    ${sec('Push, SMS and WhatsApp','Non-email channels',pushSection(key),false)}
+
+    ${sec('Where to check this by hand','Saved views and metric priority',whereToLook(),false)}
+
+    ${sec('Where every number comes from','Sources and known gaps',provenance(),false)}
 
     <footer>
       <h4>How to read this</h4>
@@ -1238,6 +1328,15 @@ function render(key){
             clicks when the report is built, so the most recent week reads slightly low and
             firms up over the following days. Compare like with like across weeks rather than
             reading a single week's absolute level too precisely.</li>
+        <li><b>The headline bar is the last 3 months</b>, not since launch, because
+            blending many months hides how the journey is performing now: one weak month
+            can drag the whole percentage down. Performance across the full life of the
+            flow is in the 3-month increment chart, where each period stands on its own.</li>
+        <li><b>PPR is always shown per 1,000 sends</b>, never as total revenue, so it can
+            be compared across periods and flows of different size. Same for projects.</li>
+        <li><b>Sections are collapsed by default.</b> Only the last 3 months, week on week
+            and the wins and issues open automatically; click any heading for the detail
+            behind it.</li>
         <li><b>Two bars, two jobs.</b> The first is cumulative since launch and carries no
             arrows, because a 12-week total does not move week to week. The second is last
             week against the week before, and only that bar is coloured.</li>
@@ -1271,6 +1370,39 @@ function render(key){
 }
 
 ['wed','mov'].forEach(render);
+
+/* ---------- chart hover tooltips ---------- */
+(function(){
+  const tip=document.getElementById('tip');
+  document.addEventListener('mouseover',e=>{
+    const t=e.target.closest('[data-tip]');
+    if(!t) return;
+    tip.innerHTML=t.getAttribute('data-tip').split('|').join('<br>');
+    tip.style.opacity='1';
+  });
+  document.addEventListener('mousemove',e=>{
+    if(tip.style.opacity!=='1') return;
+    const pad=14, r=tip.getBoundingClientRect();
+    let x=e.clientX+pad, y=e.clientY+pad;
+    if(x+r.width>innerWidth-8) x=e.clientX-r.width-pad;
+    if(y+r.height>innerHeight-8) y=e.clientY-r.height-pad;
+    tip.style.left=x+'px'; tip.style.top=y+'px';
+  });
+  document.addEventListener('mouseout',e=>{
+    if(e.target.closest('[data-tip]')) tip.style.opacity='0';
+  });
+})();
+
+/* ---------- metric toggle on the increment charts ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.mtoggle button');
+  if(!b) return;
+  const box=b.closest('.chart');
+  box.querySelectorAll('.mtoggle button').forEach(o=>
+    o.setAttribute('aria-pressed', o===b ? 'true' : 'false'));
+  box.querySelectorAll('svg[data-series]').forEach(sv=>
+    sv.style.display = sv.getAttribute('data-series')===b.dataset.m ? 'block' : 'none');
+});
 
 const tabs=[...document.querySelectorAll('.tab')];
 tabs.forEach((t,i)=>{
