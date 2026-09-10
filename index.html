@@ -235,7 +235,7 @@
       Email + Push &middot; Tableau<br>
       PPR shown per 1k sends<br>
       Label <b>campaign_group: buyer_nurture</b><br>
-      Week ending <b>Tue 1 Sep 2026</b><br>
+      Week ending <b>Tue 8 Sep 2026</b><br>
       Generated <b>Wed 9 Sep 2026</b>
     </div>
   </div>
@@ -265,14 +265,18 @@
    the cleaning, house_cleaning, odd_jobs and home_and_garden subgroups,
    which are the categories its comms actually promote. */
 const BENCH = {
-  wed:{ label:'Weddings category &middot; all buyer email &middot; Aug 2026 MTD',
-        basis:'160,605 sends across 9 campaigns, full month of Aug', benchSends:160605,
-        open:6322/160605, ctr:313/160605, unsub:227/160605, bounce:360/160605, proj1k:93/160.605 },
-  mov:{ label:'Cleaning, home &amp; odd jobs categories &middot; Aug 2026 MTD',
-        basis:'34715455 sends across 74 campaigns, full month of Aug', benchSends:34715455,
-        open:1147918/34715455, ctr:36400/34715455, unsub:22807/34715455,
-        bounce:96063/34715455, proj1k:5732/34715.455 }
+  wed:{ label:'Weddings category &middot; all buyer email &middot; 10 Jun to 8 Sep 2026',
+        basis:'524,619 sends across 9 campaigns',
+        benchSends:524619,
+        open:22422/524619, ctr:1004/524619, unsub:611/524619, bounce:1206/524619,
+        proj1k:284/524.619, ppr1k:679.72/524.619 },
+  mov:{ label:'Cleaning, home &amp; odd jobs categories &middot; 10 Jun to 8 Sep 2026',
+        basis:'113,155,066 sends across 74 campaigns',
+        benchSends:113155066,
+        open:4309269/113155066, ctr:116763/113155066, unsub:68180/113155066,
+        bounce:335527/113155066, proj1k:19546/113155.066, ppr1k:81140.49/113155.066 }
 };
+
 
 /* Monthly filtered open rate %, Jan 2025 to Aug 2026, for the comparison
    categories. Used to separate seasonality from a real change in performance. */
@@ -329,14 +333,14 @@ const AUG_FRAC=16/31; /* Aug 2026 data runs to the 16th only */
 
 /* Push, SMS and WhatsApp for both journeys.
    Tableau: CRM - Push-SMS-Whatsapp Reporting (6a536c4f), Campaign Group = buyer_nurture,
-   Attribution Mode = any_7d_post_send, 27 May to 1 Sep 2026.
+   Attribution Mode = any_7d_post_send, 27 May to 8 Sep 2026.
    The Attribution Mode filter is essential: rows repeat per mode and omitting it
    triples every send count.
    projPer1k uses buyer_project_count_any_7d_post_send, a LOOSER attribution than the
    email datasource uses. The two must not be summed or compared. See gaps below. */
 const PUSH = {
   wed:{ sends:1036, opens:19, clicks:0, bounces:0, projPer1k:82.046, valuePer1k:500.01,
-        emailSends:30136,
+        emailSends:42207,
         camps:[
           ['buyer_nurture_wedding_push2_2605_2',17784612,509,5,'UK 260, US 249'],
           ['buyer_nurture_wedding_photographer_push_2605_2',17784402,300,7,'UK 171, US 129'],
@@ -345,7 +349,7 @@ const PUSH = {
         ],
         other:[] },
   mov:{ sends:1132, opens:17, clicks:0, bounces:0, projPer1k:47.703, valuePer1k:214.74,
-        emailSends:20181,
+        emailSends:29242,
         camps:[
           ['buyer_nurture_movinghome_push2_2605_2',18102711,542,5,'UK'],
           ['buyer_nurture_movinghome_removals_push_2605_2',18102705,483,10,'UK'],
@@ -423,46 +427,47 @@ const FLOWS = {
       ['5 Aug',4521,348,13,8,9,1,0],
       ['12 Aug',4538,336,9,14,13,0,0],
       ['19 Aug',4604,318,11,12,9,0,0],
-      ['26 Aug',3561,303,9,14,1,1,4.23]
+      ['26 Aug',3561,316,9,15,3,0,0],
+      ['2 Sep',3021,251,9,5,4,0,0]
     ],
-    split:[ ['United Kingdom',7133,702,24], ['United States',10173,593,19] ],
+    split:[ ['United Kingdom',6392,644,21], ['United States',9324,575,18] ],
     comms:[
       {n:1,id:17784379,tpl:23149831,slug:'buyer_nurture_wedding_email1_2605_2',
        subject:'You’re planning a wedding 🎉 Here’s what’s next',
        hero:'https://library.iterable.com/2079/8947/dbb9053796954919be68561ba99d7b58-wedding_hero1_fallback_desktop.png',
-       s:4326,o:321,c:20,u:17,p:0},
+       s:4108,o:291,c:16,u:16,p:0},
       {n:2,id:17784440,tpl:23150019,slug:'buyer_nurture_wedding_email2_2605_2',
        subject:'Find everything for your special day on Bark',
        hero:'https://library.iterable.com/2079/8947/2ae6aaa351bd456bad3b707bd9149165-edited-image-1778483613194.png',
-       s:4459,o:238,c:4,u:10,p:0},
+       s:4174,o:225,c:7,u:10,p:0},
       {n:3,id:17784617,tpl:23150215,slug:'buyer_nurture_wedding_email3_2605_2',
-       subject:null,hero:null,s:4650,o:255,c:11,u:10,p:2},
+       subject:null,hero:null,s:4326,o:229,c:10,u:12,p:0},
       {n:4,id:17784620,tpl:23150221,slug:'buyer_nurture_wedding_email4_2605_2',
-       subject:null,hero:null,s:1436,o:197,c:5,u:5,p:0},
+       subject:null,hero:null,s:1126,o:187,c:3,u:4,p:0},
       {n:5,id:17784623,tpl:23150223,slug:'buyer_nurture_wedding_email5_2605_2',
-       subject:null,hero:null,s:1335,o:168,c:1,u:0,p:0},
+       subject:null,hero:null,s:1032,o:155,c:1,u:0,p:0},
       {n:6,id:17883669,tpl:23276462,slug:'buyer_nurture_wedding_email6_2605_2',
-       subject:null,hero:null,s:1100,o:116,c:2,u:3,p:0}
+       subject:null,hero:null,s:950,o:132,c:2,u:2,p:0}
     ],
     context:[
-      'Against the weddings category rather than the whole marketing channel, this flow is the strongest wedding email Bark sends. Its 7.61% open rate since launch is 1.8&times; the 4.32% category rate, and its 0.192% CTR is level with it.',
+      'Against the weddings category rather than the whole marketing channel, this flow is the strongest wedding email Bark sends. Its 7.70% open rate over the last 3 months is 1.80&times; the 4.27% category rate, and its 0.216% CTR is 1.13&times; ahead.',
       'The category itself lost roughly 2pp of open rate in March 2026 and has not recovered. Every legacy wedding campaign shows the same step down, so the softness in this flow\u2019s recent weeks is a platform-level effect, not a creative one.',
       'August is a genuinely weak month for wedding email. Open rate fell 4.9% from July to August in 2025 and 5.7% across the same two months in 2026. The dip repeats, so it should be expected rather than investigated.',
       'Demand has not gone anywhere. Barks in the 12 wedding categories are up 2.5% January to July against last year, and August is normally a slightly busier month than July for wedding demand (up 8.6% in 2025). So the email decline is happening while the market holds, which points at deliverability or measurement rather than buyers losing interest.'
     ],
     wins:[
-      ['Open rate is 1.94&times; the wedding category.','7.63% against 3.94%, p&lt;0.0001 on 39,186 sends. This is the strongest wedding email Bark sends.'],
+      ['Open rate is 1.80&times; the wedding category.','7.70% against 4.27%, p&lt;0.0001 on 40,788 sends. This is the strongest wedding email Bark sends.'],
       ['Email 1 is significantly the best for clicks.','0.367% CTR against 0.187% for the rest of the flow, p=0.013. The only comm-level click difference that clears significance.'],
       ['CTR matches the category exactly.','0.192% against 0.197%, p=0.876. Statistically indistinguishable, which is a fair result for a nurture flow against high-intent targeted sends.'],
       ['Bounce rate beats the category.','0.176% against 0.251%, p=0.020.']
     ],
     attention:[
-      ['Unsubscribes run 1.73&times; the category.','0.242% against 0.141%, p&lt;0.0001. This is the one engagement problem in the flow that is statistically real.'],
-      ['Conversion is well below category.','0.10 projects per 1k against 0.579, p&lt;0.001. Wedding barks are up 2.5% year to date, so the gap sits between the email and the bark form, not in the market.'],
+      ['Unsubscribes run 2.04&times; the category.','0.238% against 0.116%, p&lt;0.0001. This is the one engagement problem in the flow that is statistically real.'],
+      ['Conversion is well below category.','0.098 projects per 1k against 0.541, and PPR at £0.22 per 1k against £1.30.'],
       ['US opens trail UK by 3.7pp.','9.66% against 5.95%, p&lt;0.0001, on 46% more US volume. Matches the pattern the World Cup campaign showed.'],
       ['Email 5 has taken no clicks, but it is not yet significant.','0 clicks on 1,055 sends over four weeks, p=0.114 against the rest of the flow. Suggestive, not proven. Two or three more weeks of volume before acting on it.'],
       ['No week-on-week movement is significant.','Open, CTR, unsubscribe and bounce all fail the test at these volumes. Read the cumulative and category columns, not the weekly arrows.'],
-      ['Push reaches 3.4% of the email audience.','1,036 sends against 30,136 emails, with 19 taps in twelve weeks. The push leg is a rounding error, not a channel.'],
+      ['Push reaches 3.4% of the email audience.','1,036 push sends against 42,207 emails since launch, with 19 taps. The push leg is a rounding error, not a channel.'],
       ['The holdout stopped firing after w/c 13 Jul.','The split ran at 27.0% of audience while the test was live and is now 5.8%. The _1 sendskip arm stopped and only the smaller _0 arm and the control tile remain.']
     ],
     actions:[
@@ -490,40 +495,41 @@ const FLOWS = {
       ['5 Aug',3191,299,9,14,4,1,26.14],
       ['12 Aug',3142,290,8,20,2,0,0],
       ['19 Aug',2983,249,4,14,6,0,0],
-      ['26 Aug',2787,221,3,14,2,0,0]
+      ['26 Aug',2787,232,3,14,2,0,0],
+      ['2 Sep',2673,244,4,10,5,1,25.2]
     ],
-    split:[ ['United Kingdom',12191,1084,24] ],
+    split:[ ['United Kingdom',11578,1015,19] ],
     comms:[
       {n:1,id:18102725,tpl:23557152,slug:'buyer_nurture_movinghome_email1_2605_2',
        subject:'You’re on the move 📦 Here’s what most people forget',
        hero:'https://library.iterable.com/2079/8947/27ce7cf87f34481695c9fe074c99dd5c-nurture_movinghome_email1hero_moving.png',
-       s:3705,o:374,c:9,u:35,p:1},
+       s:3581,o:347,c:7,u:32,p:0},
       {n:2,id:18102723,tpl:23557149,slug:'buyer_nurture_movinghome_email2_2605_2',
-       subject:null,hero:null,s:3661,o:276,c:11,u:13,p:0},
+       subject:null,hero:null,s:3542,o:258,c:8,u:13,p:1},
       {n:3,id:18102706,tpl:23557132,slug:'buyer_nurture_movinghome_email3_2605_2',
-       subject:null,hero:null,s:3684,o:235,c:3,u:11,p:0},
+       subject:null,hero:null,s:3554,o:233,c:4,u:12,p:0},
       {n:4,id:18102718,tpl:23557144,slug:'buyer_nurture_movinghome_email4_2605_2',
-       subject:null,hero:null,s:1141,o:199,c:1,u:2,p:0}
+       subject:null,hero:null,s:901,o:177,c:0,u:1,p:0}
     ],
     context:[
-      'Benchmarked against the categories this flow actually sells (cleaning, home and garden, odd jobs), it is performing exceptionally on engagement: 9.65% open rate against 3.68%, and 0.292% CTR against 0.106%. That is 2.6&times; and 2.8&times; the category.',
+      'Benchmarked against the categories this flow actually sells (cleaning, home and garden, odd jobs), it is performing exceptionally on engagement: 9.32% open rate against 3.81%, and 0.234% CTR against 0.103%. That is 2.45&times; and 2.27&times; the category, and PPR per 1k is 4.9&times; ahead.',
       'The July to August dip is not seasonal. These categories were flat to slightly up across the same two months in 2025 (9.94% to 10.03%), so the 1.4pp drop in this flow last week is its own movement and worth watching rather than explaining away.',
       'Category open rate fell from 10% in February 2026 to 3.7% now, alongside send volume rising from 17.7m in February to 41.4m in July. Some of that decline is mix rather than deliverability, which is another reason to judge this flow against the category rather than against its own history.',
       'Demand is strongly up: barks in the 7 moving and cleaning categories rose 19.0% January to July against last year. August is also close to the seasonal peak for these categories. The flow is therefore softening at the exact point the opportunity is largest, which makes the unsubscribe problem more urgent, not less.'
     ],
     wins:[
-      ['Open rate is 2.84&times; the category.','9.39% against 3.31%, p&lt;0.0001. Best engagement of any buyer flow reviewed.'],
-      ['CTR is 2.36&times; the category.','0.248% against 0.105%, p&lt;0.0001.'],
+      ['Open rate is 2.45&times; the category.','9.32% against 3.81%, p&lt;0.0001. Best engagement of any buyer flow reviewed.'],
+      ['CTR is 2.27&times; the category.','0.234% against 0.103%, p&lt;0.0001.'],
       ['Bounce rate is half the category.','0.144% against 0.292%, p&lt;0.0001.'],
       ['Riding a growing category.','Barks in these 7 categories are up 19.0% January to July year on year, the strongest demand growth of the two journeys.'],
-      ['Conversion is ahead of category.','9 projects from 20,181 sends is 0.45 per 1k against 0.180. Small absolute numbers, pointing the right way.']
+      ['Conversion and revenue both beat category.','0.314 projects per 1k against 0.173, and £3.49 PPR per 1k against £0.72, so 1.8x and 4.9x ahead.']
     ],
     attention:[
       ['Email 1 is a significant unsubscribe outlier.','0.99% against 0.59% for the rest of the flow, p&lt;0.001. It generates 38 of the flow\u2019s 53 unsubscribes. This is the single clearest action in either journey.'],
-      ['Flow unsubscribe rate is 6.5&times; the category.','0.425% against 0.066%, p&lt;0.0001. The flow is buying its strong engagement with list damage.'],
-      ['SMS and WhatsApp are not firing.','11 SMS sends and 1 WhatsApp send in twelve weeks against 20,181 emails. Almost certainly a consent or phone-number condition, not performance.'],
+      ['Flow unsubscribe rate is 7.0&times; the category.','0.423% against 0.060%, p&lt;0.0001. The flow is buying its strong engagement with list damage.'],
+      ['SMS and WhatsApp are not firing.','11 SMS sends and 1 WhatsApp send since launch against 29,242 emails. Almost certainly a consent or phone-number condition, not performance.'],
       ['Email 3 is the weakest for clicks but only marginally so.','0.097% CTR, p=0.056 against the rest of the flow. Just misses significance, so treat as a watch item.'],
-      ['The weekly open-rate drop is not significant.','Down 0.42pp week on week, p=0.562. It also runs against the category, which rose slightly across July to August last year, so keep watching it without acting yet.'],
+      ['Open rate ticked up but not significantly.','9.13% against 8.32%, p=0.292. It also runs against the category, which rose slightly across July to August last year, so keep watching it without acting yet.'],
       ['Push reaches 5.6% of the email audience.','1,132 sends, 17 taps. Worth deciding whether it earns the maintenance cost.'],
       ['The holdout collapsed completely after w/c 13 Jul.','Both sendskip arms stopped firing in the same week. The split went from 30.4% of audience to 1.1%, leaving only the control2 tile. This flow currently has no usable holdout.']
     ],
@@ -766,7 +772,9 @@ function bmTable(key,all,cur){
     ['Unsubscribe rate',     all.u/all.s, cur.u/cur.s, b.unsub,3, 'down',ztest(all.u,all.s,Math.round(b.unsub*N),N)],
     ['Bounce rate',          all.b/all.s, cur.b/cur.s, b.bounce,3,'down',ztest(all.b,all.s,Math.round(b.bounce*N),N)],
     ['Projects per 1k sends',all.p/(all.s/1000)/100, cur.p/(cur.s/1000)/100, b.proj1k/100, 2,'up',
-      ztest(all.p,all.s,Math.round(b.proj1k/1000*N),N)]
+      ztest(all.p,all.s,Math.round(b.proj1k/1000*N),N)],
+    ['PPR per 1k sends',   per1k(all.r,all.s)/100, per1k(cur.r,cur.s)/100, b.ppr1k/100, 2,'up',
+      {sig:false,txt:'revenue, not a rate',p:1}]
   ];
   return `<table class="bm"><thead><tr>
       <th>Metric</th><th>Since launch</th><th>Last week</th>
@@ -776,8 +784,8 @@ function bmTable(key,all,cur){
       const good = dir==='up' ? v>bv : v<bv;
       const cls = Math.abs(idx-1)<0.08 ? 'level' : (good?'ahead':'behind');
       const read = Math.abs(idx-1)<0.08 ? 'In line' : (good?'Ahead':'Behind');
-      const f = k.startsWith('Projects')
-        ? (x=>(x*100).toFixed(dp)) : (x=>pct(x,dp));
+      const f = k.startsWith('PPR') ? (x=>'\u00a3'+(x*100).toFixed(dp))
+        : k.startsWith('Projects') ? (x=>(x*100).toFixed(dp)) : (x=>pct(x,dp));
       return `<tr><td>${k}</td><td>${f(v)}</td><td>${f(lw)}</td><td>${f(bv)}</td>
         <td>${idx.toFixed(2)}&times;</td><td class="verdict ${cls}">${read}</td>
         <td>${sigChip(sg)}</td></tr>`;
@@ -929,7 +937,7 @@ const SOURCES = [
   ['Weekly flow metrics',
    'Sends, filtered opens, clicks, unsubscribes, bounces, projects submitted, PPR revenue',
    'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
-   'Email Campaign Group = buyer_nurture &middot; 27 May to 1 Sep 2026 &middot; grouped by week'],
+   'Email Campaign Group = buyer_nurture &middot; 27 May to 8 Sep 2026 &middot; grouped by week'],
   ['Comm-level 4-week figures',
    'Same measures, per campaign',
    'Tableau &middot; Email - Country-Date-Domain-Campaign (db6fb249)',
@@ -957,7 +965,7 @@ const SOURCES = [
   ['Push, SMS and WhatsApp',
    'Sends, taps (opens), clicks, bounces, attributed projects per 1k',
    'Tableau &middot; CRM - Push-SMS-Whatsapp Reporting (6a536c4f)',
-   'Campaign Group = buyer_nurture &middot; Attribution Mode = any_7d_post_send &middot; 27 May to 1 Sep 2026'],
+   'Campaign Group = buyer_nurture &middot; Attribution Mode = any_7d_post_send &middot; 27 May to 8 Sep 2026'],
   ['Identifiers and creative only',
    'Campaign IDs, template IDs, journey (workflowId) mapping, subject lines, hero images, list names',
    'Iterable API',
@@ -976,7 +984,7 @@ const GAPS = [
   ['Push conversion is not comparable to email','Different attribution',
    'The push datasource attributes any project within seven days of send, regardless of whether the notification was opened. The email figures in this report use the email datasource\u2019s own project attribution. The two are on different bases, so this report shows them separately and never sums them into a single journey conversion number. Reconciling the two definitions is a question for Max Allos.'],
   ['SMS and WhatsApp are effectively not firing','Volume too low to report',
-   'Moving Home recorded 11 SMS sends and 1 WhatsApp send in twelve weeks against 20,181 emails. Wedding recorded none at all. This is shown as a count only, with no rates calculated, because nothing meaningful can be derived from single-digit volumes. The likely cause is a consent or phone-number condition on entry.'],
+   'Moving Home recorded 11 SMS sends and 1 WhatsApp send since launch against 29,242 emails. Wedding recorded none at all. This is shown as a count only, with no rates calculated, because nothing meaningful can be derived from single-digit volumes. The likely cause is a consent or phone-number condition on entry.'],
   ['Country coverage','Minor discrepancy',
    'Comm-level figures are filtered to United Kingdom and United States, the weekly series is not. This leaves 2 sends per flow unaccounted for in the comm table, roughly 0.01% of volume. Not material, but the two views will not tie exactly.'],
   ['August 2026 is partial','Data to the 16th',
@@ -1022,7 +1030,7 @@ function pushSection(key){
         <td><a href="https://app.iterable.com/campaigns/${id}" target="_blank" rel="noopener"
           style="color:var(--brand);text-decoration:none">${id}</a></td></tr>`).join('')+
     `</tbody></table>
-    <div class="note"><b>12 sends in 12 weeks across four campaigns.</b> Against 20,181 emails
+    <div class="note"><b>12 sends across four campaigns since launch.</b> Against 29,242 emails
       in the same journey, that is not a low-performing channel, it is a channel that is not
       firing. Most likely a missing phone number or consent condition on entry, or a step
       condition that almost never evaluates true. Worth checking in Iterable before the next
@@ -1031,7 +1039,7 @@ function pushSection(key){
       to 16 August. Either those steps do not exist in the journey or they never triggered.</div>`;
 
   return `<div class="sect"><h2>Push</h2>
-      <span class="when">${p.camps.length} campaigns &middot; 27 May to 1 Sep 2026</span></div>
+      <span class="when">${p.camps.length} campaigns &middot; 27 May to 8 Sep 2026</span></div>
     <p class="barlab"><span>Cumulative since launch</span></p>
     <div class="kpis">
       ${statCard('Push sends',num(p.sends),pct(reach,1)+' of email volume')}
@@ -1042,7 +1050,7 @@ function pushSection(key){
       ${num(p.sends)} sends against ${num(p.emailSends)} emails, so ${pct(reach,1)} of the
       email audience. Push needs the Bark app installed with notifications enabled, so reach,
       not creative, is the binding constraint. A tap rate of ${pct(tap,2)} on this volume means
-      roughly ${p.opens} people engaged in twelve weeks.</div>
+      roughly ${p.opens} people engaged across the whole flow.</div>
     <table class="bm"><thead><tr><th>Campaign</th><th>Markets</th><th>Sends</th>
       <th>Taps</th><th>Tap rate</th><th>Iterable</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="note"><b>Push conversion is on a different attribution basis.</b>
@@ -1055,9 +1063,9 @@ function pushSection(key){
 
 /* ---- Filled in each week by the CRM owner, not derived from data ---- */
 const CYCLE = {
-  weekOf:'Wed 26 Aug to Tue 1 Sep 2026',
+  weekOf:'Wed 2 Sep to Tue 8 Sep 2026',
   shipped:[
-    'Nothing shipped to either journey. Both have run unchanged since launch on 25 May, 14 weeks.'
+    'Nothing shipped to either journey. Both have run unchanged since launch on 27 May, 15 weeks.'
   ],
   next:[
     'Moving Home email 1 unsubscribe fix, still the only significant comm-level issue in either flow.',
@@ -1274,7 +1282,7 @@ function render(key){
     <div class="kpis">${bar1}</div>
 
     <div class="sect bar2"><h2>Week on week</h2>
-      <span class="when">26 Aug&ndash;1 Sep vs 19&ndash;25 Aug</span></div>
+      <span class="when">2&ndash;8 Sep vs 26 Aug&ndash;1 Sep</span></div>
     <p class="barlab"><span>Latest complete week and its move on the week before</span></p>
     <div class="kpis">${bar2}</div>
 
@@ -1310,7 +1318,7 @@ function render(key){
 
     ${sec('Weekly trend','Every week since launch',chart(f.weeks),false)}
 
-    ${sec('The flow, comm by comm','Last 4 Wed&ndash;Tue weeks',
+    ${sec('The flow, comm by comm','12 Aug to 8 Sep',
           ladder(f.comms,key)+splitTable(f.split),false)}
 
     ${sec('Push, SMS and WhatsApp','Non-email channels',pushSection(key),false)}
