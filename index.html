@@ -230,8 +230,8 @@
       <h1>Nurture flows<br><span>weekly performance</span></h1>
     </div>
     <div class="meta">
-      Wedding &middot; journey <b>950956</b><br>
-      Moving Home &middot; journey <b>951750</b><br>
+      Wedding <b>950956</b> &middot; Moving Home <b>951750</b><br>
+      Hosting Event <b>1052346</b> &middot; Home Reno <b>1052344</b><br>
       Email + Push &middot; Tableau<br>
       PPR shown per 1k sends<br>
       Label <b>campaign_group: buyer_nurture</b><br>
@@ -243,10 +243,14 @@
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="t-wed" aria-controls="p-wed" aria-selected="true">Wedding</button>
     <button class="tab" role="tab" id="t-mov" aria-controls="p-mov" aria-selected="false">Moving Home</button>
+    <button class="tab" role="tab" id="t-hos" aria-controls="p-hos" aria-selected="false">Hosting Event</button>
+    <button class="tab" role="tab" id="t-hom" aria-controls="p-hom" aria-selected="false">Home Renovation</button>
   </div>
 
   <div class="pane" id="p-wed" role="tabpanel" aria-labelledby="t-wed"></div>
   <div class="pane" id="p-mov" role="tabpanel" aria-labelledby="t-mov" hidden></div>
+  <div class="pane" id="p-hos" role="tabpanel" aria-labelledby="t-hos" hidden></div>
+  <div class="pane" id="p-hom" role="tabpanel" aria-labelledby="t-hom" hidden></div>
 
 </div>
 
@@ -329,6 +333,9 @@ const DEMAND = {
   }
 };
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/* Week labels are the Wednesday the week starts. REPORT_END is the Tuesday the latest
+   week finishes, used for any caption describing a date range. Update it each run. */
+const REPORT_END='8 Sep';
 const AUG_FRAC=16/31; /* Aug 2026 data runs to the 16th only */
 
 /* Push, SMS and WhatsApp for both journeys.
@@ -1224,6 +1231,138 @@ function controlSection(key){
       cannot be refreshed while the holdout is dissolved.</div>`;
 }
 
+
+/* ---------- early-stage flows: reduced layout, no fabricated sections ---------- */
+/* Hosting Event launched 26 Aug 2026 (journey 1052346). Only step-1 emails have
+   fired so far; steps 2 and 3 exist in Iterable but have not triggered.
+   Home Renovation (journey 1052344) has 122 campaigns, all still in Ready state,
+   so it has no send data at all. Nothing here is estimated. */
+const EARLY = {
+  hos:{
+    name:'Hosting Event', journey:1052346, markets:'United Kingdom',
+    launched:'26 Aug 2026', window:'1 Aug to 15 Sep 2026',
+    live:true,
+    tot:{s:431,o:36,c:6,u:2,b:1,p:2,r:11.06},
+    comms:[
+      ['email1_photography',   347,29,2,2,1,1,0],
+      ['email1_partyplanning',  33, 1,2,0,0,0,0],
+      ['email1_catering',       32, 2,1,0,0,1,11.06],
+      ['email1_dj',             16, 3,0,0,0,0,0],
+      ['email1_personalchef',    3, 1,1,0,0,0,0]
+    ],
+    bench:{ label:'party_and_events category &middot; 10 Jun to 8 Sep 2026',
+            s:5887292,o:314576,c:9014,u:5120,b:19200,p:871,r:2802.77 },
+    notLive:['Steps 2 and 3 across email, push, SMS and WhatsApp exist in Iterable but have not triggered yet.'],
+    notes:[
+      ['The category indices are not real yet','431 sends',
+       'The table shows CTR at 9.1x category and projects at 31x, which is not a finding, it is small numbers. Every figure rests on 36 opens, 6 clicks and 2 projects, so one extra click moves CTR by 0.23pp and one extra project moves the conversion index by 15x. Nothing clears significance. No week-on-week view is shown because at this volume it would be pure noise.'],
+      ['Only step 1 has fired','Partial launch',
+       'All 431 sends come from the five step-1 category emails. Steps 2 and 3 are built but have not triggered, so nothing here describes how the full journey performs.'],
+      ['Volume is concentrated in one category','Photography is 81%',
+       '347 of 431 sends are photography. The other four categories have 84 sends between them, and personal chef has 3. Any category comparison is meaningless until volume spreads.'],
+      ['Sections omitted on purpose','Not fabricated',
+       'Seasonality, bark demand, control arms, market split, push and the 3-month increment chart are all absent because the underlying data does not exist yet for this flow. They will appear once there is something real to put in them.']
+    ]
+  },
+  hom:{
+    name:'Home Renovation', journey:1052344, markets:'not yet sending',
+    launched:'not launched', window:'checked to 15 Sep 2026',
+    live:false,
+    campaignCount:122,
+    cats:['bathroomdesign','builder','electrician','kitchendesign','labourcontractor',
+          'landscaper','plasterer','plumber','propertyextensions','roofer'],
+    notes:[
+      ['No sends recorded','Zero rows in Tableau',
+       'Journey 1052344 has 122 campaigns set up in Iterable: 10 categories across email, push, SMS and WhatsApp for steps 1 to 3, plus two sendskip arms. Every one is in Ready state, so none have triggered and the flow has produced no sends, opens, clicks or projects.'],
+      ['Nothing to report until it launches','Deliberately empty',
+       'This tab is a placeholder rather than an empty dashboard. It will populate automatically once the journey is switched on and the first sends land in the Tableau extract.'],
+      ['Worth confirming the launch date','Open question',
+       'The campaigns are named _2608_, suggesting they were built for a 26 August start alongside Hosting Event, which did go live. Worth checking whether the hold is intentional.']
+    ]
+  }
+};
+
+function earlyPane(key){
+  const f=EARLY[key];
+  if(!f.live){
+    return `<div class="sect"><h2>${f.name}</h2>
+        <span class="when">Journey ${f.journey} &middot; ${f.window}</span></div>
+      <div class="keyfind"><div class="kf">Not live</div>
+        <p><b>This journey has not started sending.</b> ${num(f.campaignCount)} campaigns are
+          built in Iterable across ${f.cats.length} categories, all still in Ready state.
+          No metrics exist, so none are shown.</p></div>
+      <p class="barlab"><span>Categories built</span></p>
+      <table class="bm"><tbody><tr><td style="font-family:var(--mono);font-size:11.5px">${
+        f.cats.join(' &middot; ')}</td></tr></tbody></table>
+      <div class="gaps" style="margin-top:22px">`+f.notes.map(([t,st,b])=>`<div class="gap">
+        <div class="gaphead">${t} <span>${st}</span></div><p>${b}</p></div>`).join('')+`</div>`;
+  }
+
+  const t=f.tot, b=f.bench;
+  const rate=(x,n)=>n?x/n:0;
+  const rows=[
+    ['Open rate (filtered)', rate(t.o,t.s), rate(b.o,b.s), 2,'up'],
+    ['Click-through rate',   rate(t.c,t.s), rate(b.c,b.s), 3,'up'],
+    ['Unsubscribe rate',     rate(t.u,t.s), rate(b.u,b.s), 3,'down'],
+    ['Bounce rate',          rate(t.b,t.s), rate(b.b,b.s), 3,'down']
+  ];
+  const bm=rows.map(([k,v,bv,dp,dir])=>{
+    const idx=bv?v/bv:0, good=dir==='up'?v>bv:v<bv;
+    const sg=ztest(dir==='up'?(k[0]==='O'?t.o:t.c):(k[0]==='U'?t.u:t.b), t.s,
+                   Math.round(bv*b.s), b.s);
+    return `<tr><td>${k}</td><td>${pct(v,dp)}</td><td>${pct(bv,dp)}</td>
+      <td>${idx.toFixed(2)}&times;</td>
+      <td class="verdict ${Math.abs(idx-1)<0.08?'level':(good?'ahead':'behind')}">${
+        Math.abs(idx-1)<0.08?'In line':(good?'Ahead':'Behind')}</td>
+      <td>${sigChip(sg)}</td></tr>`;}).join('');
+
+  return `<div class="sect"><h2>${f.name}</h2>
+      <span class="when">Journey ${f.journey} &middot; launched ${f.launched} &middot; ${f.markets}</span></div>
+    <p class="barlab"><span>Cumulative since launch &middot; ${f.window}</span>
+      <span>Step 1 only</span></p>
+    <div class="kpis">
+      ${statCard('Sends',num(t.s),'across '+f.comms.length+' categories')}
+      ${statCard('Open rate',pct(rate(t.o,t.s),2),t.o+' opens')}
+      ${statCard('CTR',pct(rate(t.c,t.s),3),t.c+' clicks')}
+      ${statCard('Unsub rate',pct(rate(t.u,t.s),3),t.u+' unsubs')}
+      ${statCard('Projects / 1k',per1k(t.p,t.s).toFixed(3),t.p+' projects')}
+      ${statCard('PPR / 1k sends',gbp1k(t.r,t.s),'attributed within 7d')}
+    </div>
+
+    <div class="keyfind"><div class="kf">Read this first</div>
+      <p><b>This is a launch check, not a performance read.</b> ${num(t.s)} sends, ${t.o} opens,
+        ${t.c} clicks and ${t.p} projects. Nothing here is statistically meaningful, and the
+        early rates look strong mostly because the numbers are small enough to swing on a
+        single event.</p>
+      <p><b>What is worth noting</b> is that the flow is sending at all, that both projects
+        came from different categories, and that step 2 has not yet triggered.</p></div>
+
+    <div class="sect"><h2>Against comparable categories</h2>
+      <span class="when">Indicative only at this volume</span></div>
+    <table class="bm"><thead><tr><th>Metric</th><th>This flow</th><th>Category</th>
+      <th>Index</th><th>Read</th><th>Significance</th></tr></thead><tbody>${bm}</tbody></table>
+    <div class="note"><b>Benchmark:</b> ${b.label} (${num(b.s)} sends). This is the closest
+      category set to what the flow promotes: catering, DJs, personal chefs, photography and
+      party planning. <b>None of these comparisons clears significance</b>, which is what you
+      would expect from 431 sends.</div>
+
+    <div class="sect"><h2>By category, step 1</h2>
+      <span class="when">${f.window}</span></div>
+    <table class="bm"><thead><tr><th>Campaign</th><th>Sends</th><th>Open</th><th>CTR</th>
+      <th>Unsub</th><th>Proj</th><th>PPR</th></tr></thead><tbody>`+
+      f.comms.map(([nm,sn,o,c,u,bo,pj,r])=>`<tr>
+        <td style="font-family:var(--mono);font-size:11px">${nm}</td>
+        <td>${num(sn)}</td><td>${pct(rate(o,sn),1)}</td><td>${pct(rate(c,sn),3)}</td>
+        <td>${pct(rate(u,sn),3)}</td><td>${pj}</td>
+        <td>${r?gbp(r):'&mdash;'}</td></tr>`).join('')+
+    `</tbody></table>
+
+    <div class="sect"><h2>What is not here, and why</h2>
+      <span class="when">Flagged, not estimated</span></div>
+    <div class="gaps">`+f.notes.map(([t2,st,bd])=>`<div class="gap">
+      <div class="gaphead">${t2} <span>${st}</span></div><p>${bd}</p></div>`).join('')+`</div>`;
+}
+
 /* ---------- render ---------- */
 function render(key){
   const f=FLOWS[key], rows=f.weeks.map(W);
@@ -1237,7 +1376,7 @@ function render(key){
      many months hides how the journey is performing now. Since-launch detail lives in
      the 3-month increment chart further down. */
   const L3=rows.slice(-13), all=sum(L3), sinceLaunch=sum(rows);
-  const l3from=L3[0].wc, l3to=rows[rows.length-1].wc;
+  const l3from=L3[0].wc, l3to=REPORT_END;
   const c4=f.comms.reduce((a,c)=>({s:a.s+c.s,p:a.p+c.p}),{s:0,p:0});
 
   /* Bar 1 — last 3 months, no deltas. */
@@ -1378,6 +1517,7 @@ function render(key){
 }
 
 ['wed','mov'].forEach(render);
+['hos','hom'].forEach(k=>{ document.getElementById('p-'+k).innerHTML=earlyPane(k); });
 
 /* ---------- chart hover tooltips ---------- */
 (function(){
