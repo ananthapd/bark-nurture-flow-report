@@ -1452,6 +1452,64 @@ function earlyPane(key){
       <div class="gaphead">${t2} <span>${st}</span></div><p>${bd}</p></div>`).join('')+`</div>`;
 }
 
+
+/* ---------- channel performance, all four channels ----------
+   Email figures come from the email datasource (filtered opens, 7d project attribution).
+   Push / SMS / WhatsApp come from CRM - Push-SMS-Whatsapp Reporting with
+   Attribution Mode = any_7d_post_send, which credits ANY project within 7 days of send
+   regardless of interaction. That is a LOOSER basis than the email column, so the two
+   must never be summed or compared directly. Window: 1 Jul to 29 Sep 2026.
+   Push records a tap as an open and does not populate clicks, so CTR is n/a there.       */
+const CHANNELS = {
+  wed:[ ['Email',    44290, 3512, 104, 0.068, 0.00,  'email'],
+        ['Push',      1517,   33,null, 83.06, 582.47,'push'],
+        ['WhatsApp',    99,   71,   1, 50.51, 116.36,'other'],
+        ['SMS',          7, null,   2,  0.00, 0.00,  'other'] ],
+  mov:[ ['Email',    32652, 2965,  67, 0.184, 1.75,  'email'],
+        ['Push',      1944,   41,null, 37.55, 206.69,'push'],
+        ['WhatsApp',   247,  145,  10, 24.29, 537.65,'other'],
+        ['SMS',         29, null,   7, 34.48, 329.31,'other'] ],
+  hos:[ ['Email',     9714,  796, 115, 1.853, 21.08, 'email'],
+        ['SMS',       1380, null, 303, 19.57, 85.83, 'other'],
+        ['Push',       336,    6,null, 38.69, 100.86,'push'],
+        ['WhatsApp',     0, null,null, 0,     0,     'other'] ],
+  hom:[ ['Email',     4506,  587,  51, 2.219, 11.30, 'email'],
+        ['SMS',       1281, null, 459, 42.15, 271.93,'other'],
+        ['Push',       487,   24,null, 59.55, 271.31,'push'],
+        ['WhatsApp',     0, null,null, 0,     0,     'other'] ]
+};
+
+function channelSection(key){
+  const rows=CHANNELS[key]; if(!rows) return '';
+  const emailSends=rows[0][1];
+  const body=rows.filter(r=>r[1]>0).map(([ch,sn,o,c,p1k,v1k,kind])=>{
+    const reach=emailSends?sn/emailSends:0;
+    return `<tr>
+      <td><b>${ch}</b></td>
+      <td>${num(sn)}</td>
+      <td>${ch==='Email'?'&mdash;':pct(reach,1)}</td>
+      <td>${o==null?'<span class="na">n/a</span>':pct(o/sn,2)}</td>
+      <td>${c==null?'<span class="na">not tracked</span>':pct(c/sn,3)}</td>
+      <td>${kind==='email'?p1k.toFixed(3):'<span class="na">'+p1k.toFixed(1)+'*</span>'}</td>
+      <td>${kind==='email'?gbp(v1k):'<span class="na">'+gbp(v1k)+'*</span>'}</td></tr>`;}).join('');
+  const missing=rows.filter(r=>r[1]===0).map(r=>r[0]);
+  return `<table class="bm"><thead><tr><th>Channel</th><th>Sends</th><th>Reach vs email</th>
+      <th>Open / tap</th><th>CTR</th><th>Proj / 1k</th><th>PPR / 1k</th></tr></thead>
+    <tbody>${body}</tbody></table>
+    ${missing.length?`<div class="note"><b>No ${missing.join(' or ')} sends</b> recorded for this
+      flow in the window.</div>`:''}
+    <div class="note"><b>* Push, SMS and WhatsApp conversion is on a different basis.</b> Those
+      figures credit any project within seven days of send regardless of whether the message was
+      opened, which is looser than the email attribution used everywhere else in this report.
+      They are shown for direction only and <b>must not be compared with, or added to, the email
+      row</b>. Push records a tap as an open and does not populate clicks, so its CTR is blank by
+      design rather than zero.</div>
+    <div class="note"><b>Reach is the real constraint on the non-email channels.</b> Push needs
+      the app installed with notifications on; SMS and WhatsApp need a phone number plus a
+      channel-specific marketing consent. Eligible-buyer counts in the datasource match sends
+      almost exactly, so the journey is already contacting everyone it can reach.</div>`;
+}
+
 /* ---------- render ---------- */
 function render(key){
   const f=FLOWS[key], rows=f.weeks.map(W);
@@ -1549,7 +1607,10 @@ function render(key){
     ${sec('The flow, comm by comm','2 Sep to 29 Sep',
           ladder(f.comms,key)+splitTable(f.split),false)}
 
-    ${PUSH[key] ? sec('Push, SMS and WhatsApp','Non-email channels',pushSection(key),false) : ''}
+    ${sec('Channel performance','Email, push, SMS, WhatsApp &middot; 1 Jul to 29 Sep',
+          channelSection(key),false)}
+
+    ${PUSH[key] ? sec('Push campaign detail','Per-campaign push breakdown',pushSection(key),false) : ''}
 
     ${!ARMS[key] ? `<div class="note"><b>Sections not shown for this flow.</b> Control arms,
        seasonality, bark demand, push and the 3-month increment chart are omitted because
