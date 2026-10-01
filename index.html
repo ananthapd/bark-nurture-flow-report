@@ -1510,6 +1510,113 @@ function channelSection(key){
       almost exactly, so the journey is already contacting everyone it can reach.</div>`;
 }
 
+
+/* ---------- coverage: share of all barks entering a nurture flow ----------
+   Entrants are step-1 email sends, one per buyer entering the journey.
+   Denominator is all projects submitted UK+US in the same window, from the
+   Projects - Country-Category-Date-Channel-Source datasource.
+   Window: 2 to 29 Sep 2026, four complete Wed-Tue weeks.                       */
+const COVERAGE = {
+  window:'2 to 29 Sep 2026 &middot; 4 complete Wed&ndash;Tue weeks &middot; UK + US',
+  totalBarks:287805,
+  /* recomputed from the per-flow barks below, never hardcode */
+  /* per flow: buyers entered, barks in its own target categories, the categories themselves */
+  flows:{
+    wed:{ entered:3818, barks:9947, cats:['Wedding Photography','Wedding Car Hire',
+      'Wedding Venues','Wedding Makeup','Wedding DJ','Wedding Celebrants','Wedding Planning',
+      'Wedding Flowers','Wedding Catering','Wedding Videography','Wedding Cakes',
+      'Wedding Music Bands'] },
+    mov:{ entered:3399, barks:13471, cats:['Removal Companies','Man & Van Services',
+      'End of Tenancy Cleaning','Carpet Cleaning','House Clearance','Deep Cleaning Services',
+      'Waste Management'] },
+    hos:{ entered:5738, barks:26390, provisional:false,
+      cats:['Catering','DJ','General Photography','Event &amp; Party Planners',
+      'Personal Chef Services'] },
+    hom:{ entered:3033, barks:15559, provisional:true,
+      cats:['Bathroom Installation &amp; Remodel','General Builders',
+      'Electricians','Kitchen Installation &amp; Remodelling','Handyman','Landscaping',
+      'Interior Plastering &amp; Rendering','General Plumbing','Property Extensions',
+      'Roofing Installation or Replacement'] }
+  },
+  order:['wed','mov','hos','hom'],
+  names:{wed:'Wedding',mov:'Moving Home',hos:'Hosting Event',hom:'Home Renovation'}
+};
+
+/* Per-tab: how much of THIS flow's own category demand it captures. */
+function flowCoverage(key){
+  const c=COVERAGE, f=c.flows[key];
+  const ent=c.order.reduce((a,k)=>a+c.flows[k].entered,0);
+  const tgt=c.order.reduce((a,k)=>a+c.flows[k].barks,0);
+  return `<div class="kpis">
+      ${statCard('Of its own categories',pct(f.entered/f.barks,1),'the headline number')}
+      ${statCard('Buyers entered',num(f.entered),c.window.split('&middot;')[0].trim())}
+      ${statCard('Barks in those categories',num(f.barks),f.cats.length+' categories')}
+      ${statCard('Of all barks',pct(f.entered/c.totalBarks,2),'whole marketplace')}
+    </div>
+
+    <div class="keyfind"><div class="kf">${pct(f.entered/f.barks,1)} of buyers posting in these categories enter this flow</div>
+      <p>${num(f.entered)} buyers entered out of ${num(f.barks)} barks placed in the
+        ${f.cats.length} categories this journey targets, over ${c.window}.</p>
+      <p><b>It is not 100%, and it is not meant to be.</b> The journey filters on country, on the
+        user being a buyer, on exclusion criteria, and on whether the buyer has had a BOB or
+        seasonal email in the previous three days. On the Wedding canvas that last gate alone
+        takes roughly 2,500 eligible buyers down to around 980, which makes it the single largest
+        constraint by some distance. It exists to stop double-contact, so raising coverage means
+        deciding how much overlap is acceptable rather than fixing a fault.</p></div>
+
+    <p class="barlab"><span>Categories counted (${f.cats.length})</span></p>
+    <table class="bm"><tbody><tr><td style="font-family:var(--mono);font-size:11.5px;line-height:1.9">${
+      f.cats.join(' &middot; ')}</td></tr></tbody></table>
+
+    ${f.provisional?`<div class="note" style="border-left-color:#b45309"><b>This denominator is
+      provisional.</b> The ${f.cats.length} categories below are mapped from the journey's
+      campaign names to Tableau category names, and that mapping has not been confirmed. One
+      earlier mapping for another flow turned out to be wrong, so treat this percentage as
+      indicative until the category list is verified against the journey build.</div>`:''}
+    ${['hos','hom'].includes(key)?`<div class="note"><b>Part of the window predates this flow.</b>
+      ${c.names[key]} launched on ${key==='hos'?'14':'17'} September, but the window starts on
+      2 September. Barks placed before launch had no flow to enter, which depresses this
+      percentage. On a like-for-like basis since launch it is higher.</div>`:''}
+    <div class="note"><b>Treat this as a floor.</b> Entrants are counted as step-1 email sends,
+      so anyone entering who is unreachable by email never appears in the numerator. And 47% of
+      barks in these categories come from returning buyers, who may post several times but enter
+      a flow once, which inflates the denominator. Both push the true figure higher.</div>
+
+    <p class="barlab" style="margin-top:24px"><span>All four flows, for context</span></p>
+    <table class="bm"><thead><tr><th>Flow</th><th>Entered</th><th>Category barks</th>
+      <th>Coverage</th></tr></thead><tbody>`+
+      c.order.map(k=>{const g=c.flows[k];
+        return `<tr${k===key?' style="background:#fafafa"':''}><td>${k===key?'<b>'+c.names[k]+'</b>':c.names[k]}</td>
+          <td>${num(g.entered)}</td><td>${num(g.barks)}</td>
+          <td>${k===key?'<b>'+pct(g.entered/g.barks,1)+'</b>':pct(g.entered/g.barks,1)}</td></tr>`;}).join('')+
+      `<tr><td><b>All four</b></td><td><b>${num(ent)}</b></td>
+        <td><b>${num(tgt)}</b></td>
+        <td><b>${pct(ent/tgt,1)}</b></td></tr></tbody></table>
+    <div class="note">Across all four flows, <b>${pct(ent/tgt,1)} of buyers posting in
+      a targeted category enter a nurture flow</b>, and those categories are
+      ${pct(tgt/c.totalBarks,1)} of total marketplace demand. Growing the second
+      number means adding flows for new category sets; growing the first means relaxing the
+      journey filters above.</div>`;
+}
+
+function upliftSection(){
+  return `<div class="keyfind"><div class="kf">Incremental uplift &middot; not currently measurable</div>
+      <p><b>There is no reliable figure for uplift in organic or repeat usage per buyer, and
+        this report will not estimate one.</b> The holdout arms stopped firing on 13 July 2026,
+        so no control group has existed since.</p>
+      <p>A before-and-after comparison would be confounded by three things at once: wedding
+        demand is at its annual low, category mix has shifted, and two new flows launched
+        mid-period. Any number produced that way would not survive scrutiny.</p>
+      <p><b>What would fix it:</b> restarting the holdout at 25 to 30% of eligible buyers,
+        roughly where it ran before July. Engagement effects would be readable within weeks;
+        a conversion read on Wedding realistically needs until January, when volumes recover
+        enough to detect an effect.</p></div>
+    <div class="note"><b>What can be said in the meantime</b> is directional only: both new
+      flows are running well ahead of their category benchmarks on projects per 1k, and the
+      established flows are not. That is a comparison against a different audience, not a
+      causal measure of what the flows added.</div>`;
+}
+
 /* ---------- render ---------- */
 function render(key){
   const f=FLOWS[key], rows=f.weeks.map(W);
@@ -1609,6 +1716,10 @@ function render(key){
 
     ${sec('Channel performance','Email, push, SMS, WhatsApp &middot; 1 Jul to 29 Sep',
           channelSection(key),false)}
+
+    ${sec('Coverage','% of buyers posting in these categories who enter this flow',flowCoverage(key),false)}
+
+    ${sec('Incremental uplift','Why there is no number yet',upliftSection(),false)}
 
     ${PUSH[key] ? sec('Push campaign detail','Per-campaign push breakdown',pushSection(key),false) : ''}
 
